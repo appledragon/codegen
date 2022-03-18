@@ -1,0 +1,126 @@
+cmake_minimum_required(VERSION 3.23)
+
+project("vcf-codegen")
+
+set(CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../Jinja2Cpp/output/lib/jinja2cpp)
+set(CMAKE_ROOT_PATH  ${CMAKE_CURRENT_SOURCE_DIR})
+set (JINJA2CPP_DEPS_MODE internal CACHE STRING "" FORCE)
+
+
+# generate compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+include(_check_os)
+_check_os()
+
+set(CMAKE_CONFIGURATION_TYPES Release;Debug)
+
+find_package(jinja2cpp REQUIRED)
+
+
+if(APPLE)
+    find_library(CORE_FOUNDATION NAMES CoreFoundation)
+    find_library(FOUNDATION NAMES Foundation)
+    #set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+	set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Release] "dwarf-with-dsym")
+endif()
+
+# Set CXX Flag
+string(COMPARE EQUAL "${CMAKE_CXX_STANDARD}" "" no_cmake_cxx_standard_set)
+if(no_cmake_cxx_standard_set)
+    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+	message(STATUS "Using default C++ standard ${CMAKE_CXX_STANDARD}")
+
+else()
+    message(STATUS "Using user specified C++ standard ${CMAKE_CXX_STANDARD}")
+endif()
+
+
+if (TARGET_MACOSX)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version" FORCE)
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "gnu++20")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+endif (TARGET_MACOSX)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Size optimization for macOS
+if (TARGET_MACOSX)
+    set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG")
+endif (TARGET_MACOSX)
+
+# Set Library Type
+if (APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    if (IOS)
+        set(library_type FRAMEWORK_IOS)
+        set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "" CACHE INTERNAL "")
+    else (IOS)
+        set(library_type FRAMEWORK_MACOSX)
+    endif (IOS)
+elseif (ANDROID)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    set(library_type SHARED)
+elseif (WIN32 OR WIN64)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zc:wchar_t-")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zc:wchar_t-")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+	set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+    set(library_type SHARED)
+elseif (TARGET_LINUX)
+    set(library_type SHARED)
+endif (APPLE)
+
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib/Debug)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib/Release)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib/Debug)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib/Release)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/Release)
+
+############# install #######################
+if (TARGET_WINDOWS OR TARGET_MACOSX)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/output/${OS_NAME_X}/${CMAKE_BUILD_TYPE}" CACHE PATH "..." FORCE)
+else()
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/output/${OS_NAME_X}/${CMAKE_BUILD_TYPE}/${ARCH_NAME_X}" CACHE PATH "..." FORCE)
+endif()
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib/Debug)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib/Release)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib/Debug)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib/Release)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/Release)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(UT_BIN_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}" CACHE PATH "..." FORCE)
+else()
+    set(UT_BIN_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}" CACHE PATH "..." FORCE)
+endif()
+
+set(LLVM_PATH ../libclang)
+link_directories(${LLVM_PATH}/lib)
+include_directories()
+
+include_directories(
+    ${LLVM_PATH}/include
+    ./src
+)
+
+add_subdirectory( src )
+
+if (APPLE)
+    file(GLOB LIBCLANG_RUNTIME "../libclang/bin/libclang.dylib")
+    file(COPY ${LIBCLANG_RUNTIME} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
+elseif (WIN32 OR WIN64)
+    file(GLOB LIBCLANG_RUNTIME "../libclang/bin/libclang.dll")
+    file(COPY ${LIBCLANG_RUNTIME} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
+endif (APPLE)
