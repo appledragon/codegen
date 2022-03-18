@@ -5,6 +5,7 @@
 class ArgInfo
 {
 public:
+    std::string argType;
     std::string argName;
     std::string argFullName;
     bool isConst{false};

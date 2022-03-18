@@ -223,10 +223,19 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
 
         const int num_args = clang_Cursor_getNumArguments(cursor);
         for (int i = 0; i < num_args - 1; ++i) {
-            const char* arg_data_type = clang_getCString(clang_getTypeSpelling(clang_getArgType(type, i)));
-            printf("%s,", arg_data_type);
+            CXCursor arg = clang_Cursor_getArgument(cursor, i);
+            auto argName = clang_getCString(clang_getCursorSpelling(arg));
+            auto argType = clang_getCursorType(arg);
+            const char* argDataType = clang_getCString(clang_getTypeSpelling(clang_getArgType(type, i)));
+            ArgInfo argInfo{};
+            argInfo.argName = argName;
+            argInfo.argType = argDataType;
+            argInfo.argFullName += argDataType;
+            argInfo.argFullName += " ";
+            argInfo.argFullName += argName;
+            printf("%s,", argDataType);
             if (clang_CXXMethod_isVirtual(cursor)) {
-                method.methodArgs.emplace_back(arg_data_type);
+                method.methodArgs.emplace_back(argDataType);
             }
         }
         if (num_args > 0) {
@@ -282,7 +291,7 @@ int main(int argc, char** argv)
         "-ID:\\project\\common\\vendors\\protobuf\\include"
     };
 
-    const CXTranslationUnit translationUnit = clang_parseTranslationUnit(index,
+    const CXTranslationUnit translation_unit = clang_parseTranslationUnit(index,
                                                                          resolvedPath.c_str(),
                                                                          defaultArguments,
                                                                          std::extent_v<decltype(defaultArguments)>,
@@ -290,10 +299,10 @@ int main(int argc, char** argv)
                                                                          0,
                                                                          CXTranslationUnit_None);
 
-    const CXCursor rootCursor = clang_getTranslationUnitCursor(translationUnit);
+    const CXCursor rootCursor = clang_getTranslationUnitCursor(translation_unit);
     clang_visitChildren(rootCursor, Parser, nullptr);
 
-    clang_disposeTranslationUnit(translationUnit);
+    clang_disposeTranslationUnit(translation_unit);
     clang_disposeIndex(index);
     FileGenerator generator;
     generator.setFilePath(R"delimiter(D:\project\common\unittests\mock\services)delimiter");
