@@ -22,6 +22,7 @@ _build_target(
         ClassInfo.h
         ClassInfo.cpp
         FileGenerator.h
+        FileGenerator.cpp
     PRIVATE_HEADERS_DIR
         .
     PUBLIC_HEADERS_DIR

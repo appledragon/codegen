@@ -1,0 +1,14 @@
+.vscode
+.cache
+build
+buildut
+output
+vendors
+cmake-build-debug
+cmake-build-debug-coverage
+.DS_Store
+.vscode/*
+/CMakeFiles
+.idea
+.idea/workspace.xml
+
