@@ -3,6 +3,21 @@ cmake_minimum_required(VERSION 3.23)
 include(_check_os)
 _check_os()
 
+
+add_library(libclang SHARED IMPORTED GLOBAL)
+
+target_include_directories(libclang
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libclang/include/clang
+)
+if(WIN32)
+else()
+	set_target_properties(libclang PROPERTIES
+			IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../../libclang/lib/libclang.dylib"
+			IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/../../libclang/lib/libclang.dylib"
+			)
+endif()
+
 if (TARGET_MACOSX)
 	set(CMAKE_SKIP_BUILD_RPATH FALSE)
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
@@ -18,7 +33,7 @@ _build_target(
     IGNORE_WARNINGS_CLANG_IOS
         "no-#warnings"
     FILES
-		main.cpp
+        main.cpp
         ClassInfo.h
         ClassInfo.cpp
         FileGenerator.h

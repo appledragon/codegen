@@ -44,7 +44,11 @@ char* dirname(char* path)
     return path;
 }
 #else
-extern char* baseName(const char*);
+#include <libgen.h>
+char* baseName(const char* path)
+{
+    return basename(const_cast<char*>(path));
+}
 extern char* dirname(char*);
 #endif
 
