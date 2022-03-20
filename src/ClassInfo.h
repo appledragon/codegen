@@ -10,6 +10,7 @@ public:
     std::string argFullName;
     bool isConst{false};
     bool isReference{false};
+    bool isPod{false};
 };
 
 class MethodInfo
