@@ -47,18 +47,18 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
     const auto name = Utils::getCursorSpelling(cursor);
     const CXType type = clang_getCursorType(cursor);
 
-    if (kind == CXCursorKind::CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
+    if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
         classInfo = std::make_shared<ClassInfo>();
         classInfo->className = name;
         printf("class name is:%s\n", name.c_str());
-        if (clang_getCursorKind(parent) == CXCursorKind::CXCursor_Namespace) {
+        if (clang_getCursorKind(parent) == CXCursor_Namespace) {
             const auto ns = Utils::getCursorSpelling(parent);
             printf("name space is:%s\n", ns.c_str());
             classInfo->classNameSpace = ns;
         }
-    } else if (kind == CXCursorKind::CXCursor_Namespace) {
+    } else if (kind == CXCursor_Namespace) {
         printf("name space is:%s\n", name.c_str());
-    } else if (kind == CXCursorKind::CXCursor_CXXBaseSpecifier) {
+    } else if (kind == CXCursor_CXXBaseSpecifier) {
         const enum CX_CXXAccessSpecifier access = clang_getCXXAccessSpecifier(cursor);
         const unsigned isVirtual = clang_isVirtualBase(cursor);
         const char* accessStr = nullptr;
@@ -92,7 +92,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
 
         clang_visitChildren(cursor, visitor, nullptr);
 
-    } else if (kind == CXCursorKind::CXCursor_FunctionDecl) {
+    } else if (kind == CXCursor_FunctionDecl) {
         /* Collect the template parameter kinds from the base template. */
         const int NumTemplateArgs = clang_Cursor_getNumTemplateArguments(cursor);
         if (NumTemplateArgs < 0) {
@@ -122,10 +122,9 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
                     printf(" [Template arg %d: kind: %d]\n", i, TAK);
             }
         }
-    } else if (kind == CXCursorKind::CXCursor_CXXMethod) {
-        const char* function_name = clang_getCString(clang_getCursorSpelling(cursor));
-        const char* return_type = clang_getCString(clang_getTypeSpelling(clang_getResultType(type)));
-        printf("%s,%s(", return_type, function_name);
+    } else if (kind == CXCursor_CXXMethod) {
+        const auto function_name = Utils::CXStringToString(clang_getCursorSpelling(cursor));
+        const auto return_type = Utils::CXStringToString(clang_getTypeSpelling(clang_getResultType(type)));
 
         MethodInfo method{};
         method.methodName = function_name;
@@ -137,9 +136,9 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         const int num_args = clang_Cursor_getNumArguments(cursor);
         for (int i = 0; i < num_args - 1; ++i) {
             CXCursor arg = clang_Cursor_getArgument(cursor, i);
-            auto argName = clang_getCString(clang_getCursorSpelling(arg));
-            auto argType = clang_getCursorType(arg);
-            const char* argDataType = clang_getCString(clang_getTypeSpelling(clang_getArgType(type, i)));
+            const auto argName = Utils::CXStringToString(clang_getCursorSpelling(arg));
+            const auto argType = clang_getCursorType(arg);
+            const auto argDataType = Utils::CXStringToString(clang_getTypeSpelling(clang_getArgType(type, i)));
             ArgInfo argInfo{};
             argInfo.argName = argName;
             argInfo.argType = argDataType;
@@ -147,27 +146,20 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
             argInfo.argFullName += " ";
             argInfo.argFullName += argName;
             argInfo.isPod = clang_isPODType(clang_getArgType(type, i));
-            printf("%s,", argDataType);
+
             if (clang_CXXMethod_isVirtual(cursor)) {
                 method.methodArgs.emplace_back(argDataType);
             }
-
-            auto parentType = clang_getCursorKind(parent);
-            if (parentType == CXCursor_TypeRef) {
-                
-            }
         }
         if (num_args > 0) {
-            const char* arg_data_type = clang_getCString(clang_getTypeSpelling(clang_getArgType(type, num_args - 1)));
-            printf("%s", arg_data_type);
+            const auto arg_data_type =
+                Utils::CXStringToString(clang_getTypeSpelling(clang_getArgType(type, num_args - 1)));
             if (clang_CXXMethod_isVirtual(cursor)) {
                 method.methodArgs.emplace_back(arg_data_type);
             }
         }
         classInfo->methodList.emplace_back(method);
-        printf(")\n");
-
-    } else if (kind == CXCursorKind::CXCursor_FunctionTemplate) {
+    } else if (kind == CXCursor_FunctionTemplate) {
         const CXSourceRange extent = clang_getCursorExtent(cursor);
         const CXSourceLocation startLocation = clang_getRangeStart(extent);
         const CXSourceLocation endLocation = clang_getRangeEnd(extent);
@@ -184,7 +176,8 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         const auto type = clang_getCursorType(cursor);
         auto defType = clang_getTypeSpelling(type);
         auto ss = Utils::CXStringToString(defType);
-        auto s2 = clang_getCString(clang_getCursorDisplayName(clang_getCursorSemanticParent(clang_getCursorReferenced(cursor))));
+        auto s2 = Utils::CXStringToString(
+            clang_getCursorDisplayName(clang_getCursorSemanticParent(clang_getCursorReferenced(cursor))));
         std::cout << "  " << name
                   << ": "
                      "\n";
@@ -199,10 +192,6 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         unsigned line, column, offset;
         clang_getFileLocation(location, &file, &line, &column, &offset);
         auto file_name = Utils::CXStringToString(clang_getFileName(file));
-        std::cout << "  " << name
-                  << ": "
-                     "\n";
-
     }
     else
     {
