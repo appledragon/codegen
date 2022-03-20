@@ -11,55 +11,9 @@
 #include <type_traits>
 #include "ClassInfo.h"
 #include "FileGenerator.h"
+#include "Utils.h"
 
-#ifdef _MSC_VER
-char* baseName(const char* path)
-{
-    char* base1 = const_cast<char*>(strrchr(path, '/'));
-    char* base2 = const_cast<char*>(strrchr(path, '\\'));
-    if (base1 && base2)
-        return ((base1 > base2) ? base1 + 1 : base2 + 1);
-    else if (base1)
-        return (base1 + 1);
-    else if (base2)
-        return (base2 + 1);
 
-    return const_cast<char*>(path);
-}
-
-char* dirname(char* path)
-{
-    char* base1 = strrchr(path, '/');
-    char* base2 = strrchr(path, '\\');
-    if (base1 && base2)
-        if (base1 > base2)
-            *base1 = 0;
-        else
-            *base2 = 0;
-    else if (base1)
-        *base1 = 0;
-    else if (base2)
-        *base2 = 0;
-
-    return path;
-}
-#else
-#include <libgen.h>
-char* baseName(const char* path)
-{
-    return basename(const_cast<char*>(path));
-}
-extern char* dirname(char*);
-#endif
-
-std::string getCursorSpelling(CXCursor cursor)
-{
-    const CXString cursorSpelling = clang_getCursorSpelling(cursor);
-    std::string result = clang_getCString(cursorSpelling);
-
-    clang_disposeString(cursorSpelling);
-    return result;
-}
 
 /* Auxiliary function for resolving a (relative) path into an absolute path */
 std::string resolvePath(const char* path)
@@ -80,85 +34,7 @@ std::string resolvePath(const char* path)
 
     return resolvedPath;
 }
-char* create_location_string(CXCursor c)
-{
-    CXSourceLocation loc = clang_getCursorLocation(c);
-    CXString filename;
-    unsigned int line;
-    clang_getPresumedLocation(loc, &filename, &line, NULL);
-    const char* c_filename = clang_getCString(filename);
 
-    char* ret = static_cast<char*>(malloc(sizeof(char) * (strlen(c_filename) + 50)));
-    sprintf(ret, "file: %s line: %d", c_filename, line);
-
-    clang_disposeString(filename);
-    return ret;
-}
-
-void parseUsrString(const std::string& usrString, bool* isVolatile, bool* isConst, bool* isRestrict)
-{
-    size_t bangLocation = usrString.find("#");
-    if (bangLocation == std::string::npos || bangLocation == usrString.length() - 1) {
-        *isVolatile = *isConst = *isRestrict = false;
-        return;
-    }
-    bangLocation++;
-    int x = usrString[bangLocation];
-
-    *isConst = x & 0x1;
-    *isVolatile = x & 0x4;
-    *isRestrict = x & 0x2;
-}
-
-static const char* GetCursorSource(CXCursor Cursor)
-{
-    const CXSourceLocation Loc = clang_getCursorLocation(Cursor);
-    CXFile file;
-    clang_getExpansionLocation(Loc, &file, nullptr, nullptr, nullptr);
-    const CXString source = clang_getFileName(file);
-    if (!clang_getCString(source)) {
-        clang_disposeString(source);
-        return "<invalid loc>";
-    } else {
-        const char* b = baseName(clang_getCString(source));
-        clang_disposeString(source);
-        return b;
-    }
-}
-
-std::string CXStringToString(CXString text)
-{
-    std::string final_string;
-
-    if (!text.data)
-        return final_string;
-
-    final_string = std::string(clang_getCString(text));
-    clang_disposeString(text);
-    return final_string;
-}
-
-
-std::string CXFileToFilepath(CXFile file)
-{
-    return CXStringToString(clang_getFileName(file));
-}
-
-
-static bool isForwardDeclaration(CXCursor cursor)
-{
-    const auto definition = clang_getCursorDefinition(cursor);
-
-    // If the definition is null, then there is no definition in this translation
-    // unit, so this cursor must be a forward declaration.
-    if (clang_equalCursors(definition, clang_getNullCursor()))
-        return true;
-
-    // If there is a definition, then the forward declaration and the definition
-    // are in the same translation unit. This cursor is the forward declaration if
-    // it is _not_ the definition.
-    return !clang_equalCursors(cursor, definition);
-}
 
 static std::shared_ptr<ClassInfo> classInfo{nullptr};
 
@@ -168,15 +44,15 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         return CXChildVisit_Continue;
 
     const CXCursorKind kind = clang_getCursorKind(cursor);
-    const auto name = getCursorSpelling(cursor);
+    const auto name = Utils::getCursorSpelling(cursor);
     const CXType type = clang_getCursorType(cursor);
 
-    if (kind == CXCursorKind::CXCursor_ClassDecl && !isForwardDeclaration(cursor)) {
+    if (kind == CXCursorKind::CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
         classInfo = std::make_shared<ClassInfo>();
         classInfo->className = name;
         printf("class name is:%s\n", name.c_str());
         if (clang_getCursorKind(parent) == CXCursorKind::CXCursor_Namespace) {
-            const auto ns = getCursorSpelling(parent);
+            const auto ns = Utils::getCursorSpelling(parent);
             printf("name space is:%s\n", ns.c_str());
             classInfo->classNameSpace = ns;
         }
@@ -206,7 +82,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
                name.c_str(),
                accessStr,
                isVirtual ? "true" : "false");
-        printf(" [filelocation=%s]\n", GetCursorSource(cursor));
+        printf(" [filelocation=%s]\n", Utils::GetCursorSource(cursor).c_str());
         const CXCursorVisitor visitor = [](CXCursor cursor,
                                            CXCursor parent,
                                            CXClientData client_data) -> CXChildVisitResult
@@ -307,7 +183,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         CXCursorKind parentKind = clang_getCursorKind(parent);
         const auto type = clang_getCursorType(cursor);
         auto defType = clang_getTypeSpelling(type);
-        auto ss = CXStringToString(defType);
+        auto ss = Utils::CXStringToString(defType);
         auto s2 = clang_getCString(clang_getCursorDisplayName(clang_getCursorSemanticParent(clang_getCursorReferenced(cursor))));
         std::cout << "  " << name
                   << ": "
@@ -315,14 +191,14 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
     } else if (kind == CXCursor_TypeRef)
     {
         auto argType = clang_getCursorType(cursor);
-        auto typeValue = CXStringToString(clang_getTypeSpelling(argType));
+        auto typeValue = Utils::CXStringToString(clang_getTypeSpelling(argType));
         auto referenced = clang_getCursorReferenced(cursor);
         CXSourceRange range = clang_getCursorExtent(referenced);
         CXSourceLocation location = clang_getRangeStart(range);
         CXFile file;
         unsigned line, column, offset;
         clang_getFileLocation(location, &file, &line, &column, &offset);
-        auto file_name = CXStringToString(clang_getFileName(file));
+        auto file_name = Utils::CXStringToString(clang_getFileName(file));
         std::cout << "  " << name
                   << ": "
                      "\n";
@@ -335,7 +211,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         CXFile file;
         unsigned line, column, offset;
         clang_getFileLocation(location, &file, &line, &column, &offset);
-        auto file_name = CXStringToString(clang_getFileName(file));
+        auto file_name = Utils::CXStringToString(clang_getFileName(file));
         std::cout << "  " << name << ": "  "\n";
 
     }

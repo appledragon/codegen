@@ -4,6 +4,8 @@ project("vcf-codegen")
 
 set(CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../Jinja2Cpp/output/lib/jinja2cpp)
+set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../libclang/lib/cmake/clang)
+
 set(CMAKE_ROOT_PATH  ${CMAKE_CURRENT_SOURCE_DIR})
 set (JINJA2CPP_DEPS_MODE internal CACHE STRING "" FORCE)
 
@@ -11,13 +13,10 @@ set (JINJA2CPP_DEPS_MODE internal CACHE STRING "" FORCE)
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-include(_check_os)
-_check_os()
-
 set(CMAKE_CONFIGURATION_TYPES Release;Debug)
 
 find_package(jinja2cpp REQUIRED)
-
+find_package(Clang REQUIRED)
 
 if(APPLE)
     find_library(CORE_FOUNDATION NAMES CoreFoundation)
