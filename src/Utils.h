@@ -6,14 +6,14 @@ class Utils
 public:
     static  std::string CXStringToString(const CXString &text)
     {
-        std::string final_string;
+        std::string result;
 
         if (!text.data)
-            return final_string;
+            return result;
 
-        final_string = std::string(clang_getCString(text));
+        result = std::string(clang_getCString(text));
         clang_disposeString(text);
-        return final_string;
+        return result;
     }
 
     static std::string CXFileToFilepath(const CXFile &file)
