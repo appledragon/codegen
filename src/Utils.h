@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <libgen.h>
 
 class Utils
 {
@@ -62,15 +63,13 @@ public:
         return path;
     }
 #else
-#include <libgen.h>
     static char* baseName(const char* path)
     {
         return basename(const_cast<char*>(path));
     }
-    extern char* dirname(char*);
 #endif
 
-    static std::string getCursorSource(const CXCursor &Cursor)
+   static std::string getCursorSource(const CXCursor &Cursor)
     {
         const CXSourceLocation Loc = clang_getCursorLocation(Cursor);
         CXFile file;
