@@ -4,7 +4,7 @@
 class Utils
 {
 public:
-    static  std::string CXStringToString(CXString text)
+    static  std::string CXStringToString(const CXString &text)
     {
         std::string final_string;
 
@@ -16,12 +16,12 @@ public:
         return final_string;
     }
 
-    static std::string CXFileToFilepath(CXFile file)
+    static std::string CXFileToFilepath(const CXFile &file)
     {
         return CXStringToString(clang_getFileName(file));
     }
 
-    static  std::string getCursorSpelling(CXCursor cursor)
+    static  std::string getCursorSpelling(const CXCursor &cursor)
     {
         const CXString cursorSpelling = clang_getCursorSpelling(cursor);
         std::string result = clang_getCString(cursorSpelling);
@@ -70,7 +70,7 @@ public:
     extern char* dirname(char*);
 #endif
 
-    static std::string GetCursorSource(CXCursor Cursor)
+    static std::string getCursorSource(const CXCursor &Cursor)
     {
         const CXSourceLocation Loc = clang_getCursorLocation(Cursor);
         CXFile file;
@@ -86,7 +86,7 @@ public:
         }
     }
 
-    static bool isForwardDeclaration(CXCursor cursor)
+    static bool isForwardDeclaration(const CXCursor &cursor)
     {
         const auto definition = clang_getCursorDefinition(cursor);
 

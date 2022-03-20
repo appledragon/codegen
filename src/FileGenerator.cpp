@@ -75,7 +75,6 @@ void FileGenerator::generateServiceHeaderByJinja(std::shared_ptr<ClassInfo>& cla
     {
 	    jinja2::ValuesMap args{};
 	    jinja2::ValuesList arg;
-	    std::string argString;
 	    const auto argSize = method.methodArgs.size();
 	    for (int i = 0; i < argSize; i++)
 	    {

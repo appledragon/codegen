@@ -82,7 +82,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
                name.c_str(),
                accessStr,
                isVirtual ? "true" : "false");
-        printf(" [filelocation=%s]\n", Utils::GetCursorSource(cursor).c_str());
+        printf(" [filelocation=%s]\n", Utils::getCursorSource(cursor).c_str());
         const CXCursorVisitor visitor = [](CXCursor cursor,
                                            CXCursor parent,
                                            CXClientData client_data) -> CXChildVisitResult
@@ -233,10 +233,10 @@ int main(int argc, char** argv)
     constexpr const char* defaultArguments[] = {
         "-x", "c++",
         "-std=c++17",
-        "-ID:\\libclang\\lib\\clang\\13.0.0\\include",
-        "-ID:\\project\\common\\src",
-        "-ID:\\project\\common\\vendors\\glog\\win\\x64\\Release\\include",
-        "-ID:\\project\\common\\vendors\\protobuf\\include"
+        R"(-ID:\libclang\lib\clang\13.0.0\include)",
+        R"(-ID:\project\common\src)",
+        R"(-ID:\project\common\vendors\glog\win\x64\Release\include)",
+        R"(-ID:\project\common\vendors\protobuf\include)"
     };
 
     const CXTranslationUnit translation_unit = clang_parseTranslationUnit(index,
@@ -253,7 +253,7 @@ int main(int argc, char** argv)
     clang_disposeTranslationUnit(translation_unit);
     clang_disposeIndex(index);
     FileGenerator generator;
-    generator.setFilePath(R"delimiter(D:\project\common\unittests\mock\services)delimiter");
+    generator.setFilePath(R"(D:\project\common\unittests\mock\services)");
     generator.generateFile(classInfo);
     return 0;
 }
