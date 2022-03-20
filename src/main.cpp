@@ -137,7 +137,6 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         for (int i = 0; i < num_args - 1; ++i) {
             CXCursor arg = clang_Cursor_getArgument(cursor, i);
             const auto argName = Utils::CXStringToString(clang_getCursorSpelling(arg));
-            const auto argType = clang_getCursorType(arg);
             const auto argDataType = Utils::CXStringToString(clang_getTypeSpelling(clang_getArgType(type, i)));
             ArgInfo argInfo{};
             argInfo.argName = argName;
@@ -172,7 +171,6 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
 
         std::cout << "  " << name << ": " << endLine - startLine << "\n";
     } else if (kind == CXCursor_ParmDecl) {
-        CXCursorKind parentKind = clang_getCursorKind(parent);
         const auto type = clang_getCursorType(cursor);
         auto defType = clang_getTypeSpelling(type);
         auto ss = Utils::CXStringToString(defType);
