@@ -14,7 +14,6 @@
 #include "Utils.h"
 
 
-
 /* Auxiliary function for resolving a (relative) path into an absolute path */
 std::string resolvePath(const char* path)
 {
@@ -82,11 +81,10 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
                name.c_str(),
                accessStr,
                isVirtual ? "true" : "false");
-        printf(" [filelocation=%s]\n", Utils::getCursorSource(cursor).c_str());
+        printf(" [file location=%s]\n", Utils::getCursorSource(cursor).c_str());
         const CXCursorVisitor visitor = [](CXCursor cursor,
                                            CXCursor parent,
-                                           CXClientData client_data) -> CXChildVisitResult
-        {
+                                           CXClientData client_data) -> CXChildVisitResult {
             return CXChildVisit_Continue;
         };
 
@@ -176,8 +174,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         auto s2 = Utils::CXStringToString(
             clang_getCursorDisplayName(clang_getCursorSemanticParent(clang_getCursorReferenced(cursor))));
         std::cout << "  " << name;
-    } else if (kind == CXCursor_TypeRef)
-    {
+    } else if (kind == CXCursor_TypeRef) {
         auto argType = clang_getCursorType(cursor);
         auto typeValue = Utils::getCursorTypeString(argType);
         auto referenced = clang_getCursorReferenced(cursor);
@@ -190,16 +187,14 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         clang_getFileLocation(location, &file, &line, &column, &offset);
         auto file_name = Utils::CXFileToFilepath(file);
         std::cout << "  " << name;
-    }
-    else
-    {
+    } else {
         CXSourceRange range = clang_getCursorExtent(cursor);
         CXSourceLocation location = clang_getRangeStart(range);
         CXFile file;
         unsigned line, column, offset;
         clang_getFileLocation(location, &file, &line, &column, &offset);
         auto file_name = Utils::CXStringToString(clang_getFileName(file));
-        std::cout << "  " << name << ": "  "\n";
+        std::cout << "  " << name << ": " "\n";
 
     }
 
@@ -227,12 +222,12 @@ int main(int argc, char** argv)
     };
 
     const CXTranslationUnit translation_unit = clang_parseTranslationUnit(index,
-                                                                         resolvedPath.c_str(),
-                                                                         defaultArguments,
-                                                                         std::extent_v<decltype(defaultArguments)>,
-                                                                         nullptr,
-                                                                         0,
-                                                                         CXTranslationUnit_None);
+                                                                          resolvedPath.c_str(),
+                                                                          defaultArguments,
+                                                                          std::extent_v<decltype(defaultArguments)>,
+                                                                          nullptr,
+                                                                          0,
+                                                                          CXTranslationUnit_None);
 
     const CXCursor rootCursor = clang_getTranslationUnitCursor(translation_unit);
     clang_visitChildren(rootCursor, Parser, nullptr);

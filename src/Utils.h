@@ -4,7 +4,7 @@
 class Utils
 {
 public:
-    static  std::string CXStringToString(const CXString &text)
+    static std::string CXStringToString(const CXString& text)
     {
         std::string result;
 
@@ -16,12 +16,12 @@ public:
         return result;
     }
 
-    static std::string CXFileToFilepath(const CXFile &file)
+    static std::string CXFileToFilepath(const CXFile& file)
     {
         return CXStringToString(clang_getFileName(file));
     }
 
-    static  std::string getCursorSpelling(const CXCursor &cursor)
+    static std::string getCursorSpelling(const CXCursor& cursor)
     {
         const CXString cursorSpelling = clang_getCursorSpelling(cursor);
         std::string result = clang_getCString(cursorSpelling);
@@ -69,9 +69,9 @@ public:
     }
 #endif
 
-   static std::string getCursorSource(const CXCursor& cursor)
+    static std::string getCursorSource(const CXCursor& cursor)
     {
-       const CXSourceLocation Loc = clang_getCursorLocation(cursor);
+        const CXSourceLocation Loc = clang_getCursorLocation(cursor);
         CXFile file;
         clang_getExpansionLocation(Loc, &file, nullptr, nullptr, nullptr);
         const CXString source = clang_getFileName(file);
@@ -100,7 +100,7 @@ public:
         return CXStringToString(clang_getCursorSpelling(cursor));
     }
 
-    static bool isForwardDeclaration(const CXCursor &cursor)
+    static bool isForwardDeclaration(const CXCursor& cursor)
     {
         const auto definition = clang_getCursorDefinition(cursor);
 
@@ -114,5 +114,4 @@ public:
         // it is _not_ the definition.
         return !clang_equalCursors(cursor, definition);
     }
-    
 };
