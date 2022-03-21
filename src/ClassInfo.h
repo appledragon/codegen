@@ -18,9 +18,11 @@ class MethodInfo
 public:
     std::string methodReturnType;
     std::string methodName;
+    std::string methodFullName;
     std::vector<std::string> methodArgs{};
     bool isConst{ false };
     bool isVirtual{ false };
+    bool isStatic{false};
 };
 
 class ClassInfo

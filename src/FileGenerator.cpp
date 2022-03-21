@@ -5,7 +5,7 @@
 #include <fstream>
 #include <filesystem>
 
-void FileGenerator::setFilePath(const std::string& path)
+void FileGenerator::setOutputFilePath(const std::string& path)
 {
     if (!std::filesystem::exists(path))
     {
@@ -14,7 +14,7 @@ void FileGenerator::setFilePath(const std::string& path)
     mOutputDir = path;
 }
 
-void FileGenerator::generateFile(std::shared_ptr<ClassInfo>& classInfo)
+void FileGenerator::generateFile(const std::shared_ptr<ClassInfo>& classInfo)
 {
     if (mOutputDir.empty())
 	    return;
@@ -47,19 +47,19 @@ void FileGenerator::generateFile(std::shared_ptr<ClassInfo>& classInfo)
     }
 }
 
-void FileGenerator::generateAdapterByJinja(std::shared_ptr<ClassInfo>& classInfo)
+void FileGenerator::generateAdapterByJinja(const std::shared_ptr<ClassInfo>& classInfo)
 {
     generateAdapterHeaderByJinja(classInfo);
     generateAdapterCppByJinja(classInfo);
 }
 
-void FileGenerator::generateServiceByJinja(std::shared_ptr<ClassInfo>& classInfo)
+void FileGenerator::generateServiceByJinja(const std::shared_ptr<ClassInfo>& classInfo)
 {
     generateServiceHeaderByJinja(classInfo);
     generateServiceCppByJinja(classInfo);
 }
 
-void FileGenerator::generateServiceHeaderByJinja(std::shared_ptr<ClassInfo>& classInfo)
+void FileGenerator::generateServiceHeaderByJinja(const std::shared_ptr<ClassInfo>& classInfo)
 {
     jinja2::ValuesMap params{ };
 
@@ -76,7 +76,7 @@ void FileGenerator::generateServiceHeaderByJinja(std::shared_ptr<ClassInfo>& cla
 	    jinja2::ValuesMap args{};
 	    jinja2::ValuesList arg;
 	    const auto argSize = method.methodArgs.size();
-	    for (int i = 0; i < argSize; i++)
+            for (size_t i = 0; i < argSize; i++)
 	    {
 		    arg.push_back(method.methodArgs.at(i));
 
@@ -107,7 +107,7 @@ void FileGenerator::generateServiceHeaderByJinja(std::shared_ptr<ClassInfo>& cla
     RenderFile("ServiceHeader.tpl", mOutputDir + "\\Mock" + mClassName + ".h", params);
 }
 
-void FileGenerator::generateServiceCppByJinja(std::shared_ptr<ClassInfo>& classInfo)
+void FileGenerator::generateServiceCppByJinja(const std::shared_ptr<ClassInfo>& classInfo)
 {
     jinja2::ValuesMap params{ };
     params.emplace("ns_name", classInfo->classNameSpace);
@@ -122,7 +122,7 @@ void FileGenerator::generateServiceCppByJinja(std::shared_ptr<ClassInfo>& classI
     {
 	    std::string argString;
 	    const auto argSize = method.methodArgs.size();
-	    for (int i = 0; i < argSize; i++)
+	    for (size_t i = 0; i < argSize; i++)
 	    {
 		    argString += "_";
 		    if (i != argSize - 1)
@@ -147,17 +147,17 @@ void FileGenerator::RenderFile(const std::string& input, const std::string& outp
     env.GetSettings().trimBlocks = false;
     jinja2::Template tpl(&env);
     tpl.LoadFromFile(input);
-    std::filesystem::path path{ output };
+    const std::filesystem::path path{ output };
     std::ofstream ofs(path);
     tpl.Render(ofs, map);
 }
 
-void FileGenerator::generateAdapterHeaderByJinja(std::shared_ptr<ClassInfo>& classInfo)
+void FileGenerator::generateAdapterHeaderByJinja(const std::shared_ptr<ClassInfo>& classInfo)
 {
 
 }
 
-void FileGenerator::generateAdapterCppByJinja(std::shared_ptr<ClassInfo>& classInfo)
+void FileGenerator::generateAdapterCppByJinja(const std::shared_ptr<ClassInfo>& classInfo)
 {
     jinja2::ValuesMap params{ };
     params.emplace("service_name", mClassName);
@@ -170,7 +170,7 @@ void FileGenerator::generateAdapterCppByJinja(std::shared_ptr<ClassInfo>& classI
     {
 	    std::string argString;
 	    const auto argSize = method.methodArgs.size();
-	    for (int i = 0; i < argSize; i++)
+            for (size_t i = 0; i < argSize; i++)
 	    {
 		    argString += "_";
 		    if (i != argSize - 1)

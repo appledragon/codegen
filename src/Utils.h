@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <libgen.h>
 
 class Utils
 {
@@ -63,6 +62,7 @@ public:
         return path;
     }
 #else
+#include <libgen.h>
     static char* baseName(const char* path)
     {
         return basename(const_cast<char*>(path));

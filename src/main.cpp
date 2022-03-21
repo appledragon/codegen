@@ -132,6 +132,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
 
         method.isConst = clang_CXXMethod_isConst(cursor);
         method.isVirtual = clang_CXXMethod_isVirtual(cursor);
+        method.isStatic = clang_CXXMethod_isStatic(cursor);
 
         const int num_args = clang_Cursor_getNumArguments(cursor);
         for (int i = 0; i < num_args - 1; ++i) {
@@ -176,20 +177,21 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         auto ss = Utils::CXStringToString(defType);
         auto s2 = Utils::CXStringToString(
             clang_getCursorDisplayName(clang_getCursorSemanticParent(clang_getCursorReferenced(cursor))));
-        std::cout << "  " << name
-                  << ": "
-                     "\n";
+        std::cout << "  " << name;
     } else if (kind == CXCursor_TypeRef)
     {
         auto argType = clang_getCursorType(cursor);
         auto typeValue = Utils::CXStringToString(clang_getTypeSpelling(argType));
         auto referenced = clang_getCursorReferenced(cursor);
+        auto underlying = clang_getTypedefDeclUnderlyingType(referenced);
+        auto ss = Utils::CXStringToString(clang_getTypeSpelling(underlying));
         CXSourceRange range = clang_getCursorExtent(referenced);
         CXSourceLocation location = clang_getRangeStart(range);
         CXFile file;
         unsigned line, column, offset;
         clang_getFileLocation(location, &file, &line, &column, &offset);
         auto file_name = Utils::CXStringToString(clang_getFileName(file));
+        std::cout << "  " << name;
     }
     else
     {
@@ -220,10 +222,10 @@ int main(int argc, char** argv)
     constexpr const char* defaultArguments[] = {
         "-x", "c++",
         "-std=c++17",
-        R"(-ID:\libclang\lib\clang\13.0.0\include)",
-        R"(-ID:\project\common\src)",
-        R"(-ID:\project\common\vendors\glog\win\x64\Release\include)",
-        R"(-ID:\project\common\vendors\protobuf\include)"
+        R"(-IC:\project\libclang\lib\clang\13.0.0\include)",
+        R"(-IC:\project\common\src)",
+        R"(-IC:\project\common\vendors\glog\win\x64\Release\include)",
+        R"(-IC:\project\common\vendors\protobuf\include)"
     };
 
     const CXTranslationUnit translation_unit = clang_parseTranslationUnit(index,
@@ -240,7 +242,7 @@ int main(int argc, char** argv)
     clang_disposeTranslationUnit(translation_unit);
     clang_disposeIndex(index);
     FileGenerator generator;
-    generator.setFilePath(R"(D:\project\common\unittests\mock\services)");
+    generator.setOutputFilePath(R"(D:\project\common\unittests\mock\services)");
     generator.generateFile(classInfo);
     return 0;
 }

@@ -7,22 +7,21 @@ class FileGenerator
 {
 
 public:
-	void setFilePath(const std::string& path);
-
-	void generateFile(std::shared_ptr<ClassInfo> &classInfo);
+	void setOutputFilePath(const std::string& path);
+	void generateFile(const std::shared_ptr<ClassInfo>& classInfo);
 
 private:
 	std::string mOutputDir;
 	std::string mClassName;
 	std::string mAdapterName;
 
-	void generateAdapterByJinja(std::shared_ptr<ClassInfo>& classInfo);
-	void generateAdapterHeaderByJinja(std::shared_ptr<ClassInfo>& classInfo);
-	void generateAdapterCppByJinja(std::shared_ptr<ClassInfo>& classInfo);
+	void generateAdapterByJinja(const std::shared_ptr<ClassInfo>& classInfo);
+	void generateAdapterHeaderByJinja(const std::shared_ptr<ClassInfo>& classInfo);
+	void generateAdapterCppByJinja(const std::shared_ptr<ClassInfo>& classInfo);
 
-	void generateServiceByJinja(std::shared_ptr<ClassInfo>& classInfo);
-	void generateServiceHeaderByJinja(std::shared_ptr<ClassInfo>& classInfo);
-	void generateServiceCppByJinja(std::shared_ptr<ClassInfo>& classInfo);
+	void generateServiceByJinja(const std::shared_ptr<ClassInfo>& classInfo);
+	void generateServiceHeaderByJinja(const std::shared_ptr<ClassInfo>& classInfo);
+	void generateServiceCppByJinja(const std::shared_ptr<ClassInfo>& classInfo);
 
 	void RenderFile(const std::string& input, const std::string& output, const jinja2::ValuesMap& map);
 
