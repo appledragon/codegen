@@ -34,20 +34,17 @@ std::string resolvePath(const char* path)
     return resolvedPath;
 }
 
-
-static std::shared_ptr<ClassInfo> classInfo{nullptr};
-
-CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clientData */)
+CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientData)
 {
     if (clang_Location_isFromMainFile(clang_getCursorLocation(cursor)) == 0)
         return CXChildVisit_Continue;
 
+    auto classInfo = static_cast<ClassInfo*>(clientData);
     const CXCursorKind kind = clang_getCursorKind(cursor);
     const auto name = Utils::getCursorSpelling(cursor);
     const CXType type = clang_getCursorType(cursor);
 
     if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
-        classInfo = std::make_shared<ClassInfo>();
         classInfo->className = name;
         printf("class name is:%s\n", name.c_str());
         if (clang_getCursorKind(parent) == CXCursor_Namespace) {
@@ -229,8 +226,9 @@ int main(int argc, char** argv)
                                                                           0,
                                                                           CXTranslationUnit_None);
 
+    const std::shared_ptr<ClassInfo> classInfo = std::make_shared<ClassInfo>();
     const CXCursor rootCursor = clang_getTranslationUnitCursor(translation_unit);
-    clang_visitChildren(rootCursor, Parser, nullptr);
+    clang_visitChildren(rootCursor, Parser, classInfo.get());
 
     clang_disposeTranslationUnit(translation_unit);
     clang_disposeIndex(index);
