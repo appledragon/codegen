@@ -127,7 +127,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientD
         method.isConst = clang_CXXMethod_isConst(cursor);
         method.isVirtual = clang_CXXMethod_isVirtual(cursor);
         method.isStatic = clang_CXXMethod_isStatic(cursor);
-
+        /*
         const int num_args = clang_Cursor_getNumArguments(cursor);
         for (int i = 0; i < num_args - 1; ++i) {
             CXCursor arg = clang_Cursor_getArgument(cursor, i);
@@ -151,7 +151,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientD
             if (clang_CXXMethod_isVirtual(cursor)) {
                 method.methodArgs.emplace_back(arg_data_type);
             }
-        }
+        }*/
         classInfo->methodList.emplace_back(method);
     } else if (kind == CXCursor_FunctionTemplate) {
         const CXSourceRange extent = clang_getCursorExtent(cursor);
@@ -166,23 +166,43 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientD
 
         std::cout << "  " << name << ": " << endLine - startLine << "\n";
     } else if (kind == CXCursor_ParmDecl) {
-        auto ss = Utils::getCursorTypeString(cursor);
+        auto typeName = Utils::getCursorTypeString(cursor);
         auto s2 = Utils::CXStringToString(
             clang_getCursorDisplayName(clang_getCursorSemanticParent(clang_getCursorReferenced(cursor))));
+
+        const CXCursorVisitor visitor =
+            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+            const CXCursorKind childKind = clang_getCursorKind(cursor);
+
+            if (childKind == CXCursor_TypeRef) {
+                const auto argName = Utils::getCursorNameString(parent);
+                auto typeValue = Utils::getCursorTypeString(parent);
+                const auto referenced = clang_getCursorReferenced(cursor);
+                const auto underlying = clang_getTypedefDeclUnderlyingType(referenced);
+                auto ss = Utils::getCursorTypeString(underlying);
+                const CXSourceRange range = clang_getCursorExtent(referenced);
+                const CXSourceLocation location = clang_getRangeStart(range);
+                CXFile file;
+                unsigned line, column, offset;
+                clang_getFileLocation(location, &file, &line, &column, &offset);
+                auto file_name = Utils::CXFileToFilepath(file);
+
+                std::cout << "  " << argName;
+                return CXChildVisit_Break;
+            }
+    
+        };
+
+        clang_visitChildren(cursor, visitor, nullptr);
         std::cout << "  " << name;
     } else if (kind == CXCursor_TypeRef) {
-        auto argType = clang_getCursorType(cursor);
-        auto typeValue = Utils::getCursorTypeString(argType);
-        auto referenced = clang_getCursorReferenced(cursor);
-        auto underlying = clang_getTypedefDeclUnderlyingType(referenced);
-        auto ss = Utils::getCursorTypeString(underlying);
-        CXSourceRange range = clang_getCursorExtent(referenced);
-        CXSourceLocation location = clang_getRangeStart(range);
-        CXFile file;
-        unsigned line, column, offset;
-        clang_getFileLocation(location, &file, &line, &column, &offset);
-        auto file_name = Utils::CXFileToFilepath(file);
-        std::cout << "  " << name;
+        const auto argType = clang_getCursorType(cursor);
+        const auto parentType = clang_getCursorKind(parent);
+        if (parentType == CXCursor_ParmDecl) {
+
+
+        }
+
     } else {
         CXSourceRange range = clang_getCursorExtent(cursor);
         CXSourceLocation location = clang_getRangeStart(range);
@@ -206,7 +226,7 @@ int main(int argc, char** argv)
     const auto resolvedPath = resolvePath(argv[1]);
     std::cerr << "Parsing " << resolvedPath << "...\n";
 
-    CXIndex index = clang_createIndex(0, 1);
+    const CXIndex index = clang_createIndex(0, 1);
 
     constexpr const char* defaultArguments[] = {
         "-x", "c++",
