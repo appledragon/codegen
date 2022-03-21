@@ -14,7 +14,6 @@
 #include "Utils.h"
 
 
-/* Auxiliary function for resolving a (relative) path into an absolute path */
 std::string resolvePath(const char* path)
 {
     std::string resolvedPath;
@@ -207,7 +206,7 @@ int main(int argc, char** argv)
     const auto resolvedPath = resolvePath(argv[1]);
     std::cerr << "Parsing " << resolvedPath << "...\n";
 
-    const CXIndex index = clang_createIndex(0, 1);
+    CXIndex index = clang_createIndex(0, 1);
 
     constexpr const char* defaultArguments[] = {
         "-x", "c++",
