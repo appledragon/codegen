@@ -69,9 +69,9 @@ public:
     }
 #endif
 
-   static std::string getCursorSource(const CXCursor &Cursor)
+   static std::string getCursorSource(const CXCursor& cursor)
     {
-        const CXSourceLocation Loc = clang_getCursorLocation(Cursor);
+       const CXSourceLocation Loc = clang_getCursorLocation(cursor);
         CXFile file;
         clang_getExpansionLocation(Loc, &file, nullptr, nullptr, nullptr);
         const CXString source = clang_getFileName(file);
@@ -83,6 +83,21 @@ public:
             clang_disposeString(source);
             return b;
         }
+    }
+
+    static std::string getCursorTypeString(const CXType& type)
+    {
+        return CXStringToString(clang_getTypeSpelling(type));
+    }
+
+    static std::string getCursorTypeString(const CXCursor& cursor)
+    {
+        return CXStringToString(clang_getTypeSpelling(clang_getCursorType(cursor)));
+    }
+
+    static std::string getCursorNameString(const CXCursor& cursor)
+    {
+        return CXStringToString(clang_getCursorSpelling(cursor));
     }
 
     static bool isForwardDeclaration(const CXCursor &cursor)

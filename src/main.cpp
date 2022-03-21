@@ -123,8 +123,8 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
             }
         }
     } else if (kind == CXCursor_CXXMethod) {
-        const auto function_name = Utils::CXStringToString(clang_getCursorSpelling(cursor));
-        const auto return_type = Utils::CXStringToString(clang_getTypeSpelling(clang_getResultType(type)));
+        const auto function_name = Utils::getCursorNameString(cursor);
+        const auto return_type = Utils::getCursorTypeString(clang_getResultType(type));
 
         MethodInfo method{};
         method.methodName = function_name;
@@ -137,8 +137,8 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
         const int num_args = clang_Cursor_getNumArguments(cursor);
         for (int i = 0; i < num_args - 1; ++i) {
             CXCursor arg = clang_Cursor_getArgument(cursor, i);
-            const auto argName = Utils::CXStringToString(clang_getCursorSpelling(arg));
-            const auto argDataType = Utils::CXStringToString(clang_getTypeSpelling(clang_getArgType(type, i)));
+            const auto argName = Utils::getCursorNameString(arg);
+            const auto argDataType = Utils::getCursorTypeString(clang_getArgType(type, i));
             ArgInfo argInfo{};
             argInfo.argName = argName;
             argInfo.argType = argDataType;
@@ -172,25 +172,23 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData /* clie
 
         std::cout << "  " << name << ": " << endLine - startLine << "\n";
     } else if (kind == CXCursor_ParmDecl) {
-        const auto type = clang_getCursorType(cursor);
-        auto defType = clang_getTypeSpelling(type);
-        auto ss = Utils::CXStringToString(defType);
+        auto ss = Utils::getCursorTypeString(cursor);
         auto s2 = Utils::CXStringToString(
             clang_getCursorDisplayName(clang_getCursorSemanticParent(clang_getCursorReferenced(cursor))));
         std::cout << "  " << name;
     } else if (kind == CXCursor_TypeRef)
     {
         auto argType = clang_getCursorType(cursor);
-        auto typeValue = Utils::CXStringToString(clang_getTypeSpelling(argType));
+        auto typeValue = Utils::getCursorTypeString(argType);
         auto referenced = clang_getCursorReferenced(cursor);
         auto underlying = clang_getTypedefDeclUnderlyingType(referenced);
-        auto ss = Utils::CXStringToString(clang_getTypeSpelling(underlying));
+        auto ss = Utils::getCursorTypeString(underlying);
         CXSourceRange range = clang_getCursorExtent(referenced);
         CXSourceLocation location = clang_getRangeStart(range);
         CXFile file;
         unsigned line, column, offset;
         clang_getFileLocation(location, &file, &line, &column, &offset);
-        auto file_name = Utils::CXStringToString(clang_getFileName(file));
+        auto file_name = Utils::CXFileToFilepath(file);
         std::cout << "  " << name;
     }
     else
