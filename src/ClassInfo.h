@@ -6,6 +6,7 @@ class ArgInfo
 {
 public:
     std::string argType;
+    std::string argUnderlyingType;
     std::string argName;
     std::string argFullName;
     std::string sourceLocation;          // header file name;
@@ -21,7 +22,7 @@ public:
     std::string methodReturnType;
     std::string methodName;
     std::string methodFullName;
-    std::vector<std::string> methodArgs{};
+    std::vector<ArgInfo> methodArgs{};
     bool isConst{ false };
     bool isVirtual{ false };
     bool isStatic{false};

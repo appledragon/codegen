@@ -78,7 +78,7 @@ void FileGenerator::generateServiceHeaderByJinja(const std::shared_ptr<ClassInfo
 	    const auto argSize = method.methodArgs.size();
             for (size_t i = 0; i < argSize; i++)
 	    {
-		    arg.push_back(method.methodArgs.at(i));
+		    arg.push_back(method.methodArgs.at(i).argType);
 
 	    }
 	    args.emplace(method.methodName, arg);
