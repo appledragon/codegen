@@ -4,7 +4,7 @@
 class Utils
 {
 public:
-    static std::string CXStringToString(const CXString& text)
+    static std::string cXStringToStdString(const CXString& text)
     {
         std::string result;
 
@@ -16,9 +16,9 @@ public:
         return result;
     }
 
-    static std::string CXFileToFilepath(const CXFile& file)
+    static std::string cXFileToStdString(const CXFile& file)
     {
-        return CXStringToString(clang_getFileName(file));
+        return cXStringToStdString(clang_getFileName(file));
     }
 
     static std::string getCursorSpelling(const CXCursor& cursor)
@@ -87,17 +87,17 @@ public:
 
     static std::string getCursorTypeString(const CXType& type)
     {
-        return CXStringToString(clang_getTypeSpelling(type));
+        return cXStringToStdString(clang_getTypeSpelling(type));
     }
 
     static std::string getCursorTypeString(const CXCursor& cursor)
     {
-        return CXStringToString(clang_getTypeSpelling(clang_getCursorType(cursor)));
+        return cXStringToStdString(clang_getTypeSpelling(clang_getCursorType(cursor)));
     }
 
     static std::string getCursorNameString(const CXCursor& cursor)
     {
-        return CXStringToString(clang_getCursorSpelling(cursor));
+        return cXStringToStdString(clang_getCursorSpelling(cursor));
     }
 
     static bool isForwardDeclaration(const CXCursor& cursor)
@@ -113,5 +113,29 @@ public:
         // are in the same translation unit. This cursor is the forward declaration if
         // it is _not_ the definition.
         return !clang_equalCursors(cursor, definition);
+    }
+
+    using sourceFileName = std::string;
+    using sourceFileFullPath = std::string;
+
+    static std::pair<sourceFileName, sourceFileFullPath> getCursorSourceLocation(const CXCursor& cursor)
+    {
+        const auto referenced = clang_getCursorReferenced(cursor);
+        const auto fileName = getCursorSource(referenced);
+
+        const CXSourceRange range = clang_getCursorExtent(referenced);
+        const CXSourceLocation location = clang_getRangeStart(range);
+        CXFile file;
+        unsigned line, column, offset;
+        clang_getFileLocation(location, &file, &line, &column, &offset);
+        const auto fileLocation = cXFileToStdString(file);
+        return {fileName, fileLocation};
+    }
+
+    static std::string getCursorUnderlyingTypeString(const CXCursor& cursor)
+    {
+        const auto referenced = clang_getCursorReferenced(cursor);
+        const auto underlying = clang_getTypedefDeclUnderlyingType(referenced);
+        return getCursorTypeString(underlying);
     }
 };

@@ -48,9 +48,13 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientD
         printf("class name is:%s\n", name.c_str());
         if (clang_getCursorKind(parent) == CXCursor_Namespace) {
             const auto ns = Utils::getCursorSpelling(parent);
-            printf("name space is:%s\n", ns.c_str());
             classInfo->classNameSpace = ns;
         }
+
+        const auto location = Utils::getCursorSourceLocation(cursor);
+        classInfo->sourceLocation = location.first;
+        classInfo->sourceLocationFullPath = location.second;
+
     } else if (kind == CXCursor_Namespace) {
         printf("name space is:%s\n", name.c_str());
     } else if (kind == CXCursor_CXXBaseSpecifier) {
@@ -73,19 +77,28 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientD
                 break;
         }
 
-        printf(" [name=%s access=%s isVirtual=%s]\n",
-               name.c_str(),
-               accessStr,
-               isVirtual ? "true" : "false");
-        printf(" [file location=%s]\n", Utils::getCursorSource(cursor).c_str());
-        const CXCursorVisitor visitor = [](CXCursor cursor,
-                                           CXCursor parent,
-                                           CXClientData client_data) -> CXChildVisitResult {
+        const CXCursorVisitor visitor =
+            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+            const auto classInfo = static_cast<ClassInfo*>(client_data);
+            const CXCursorKind childKind = clang_getCursorKind(cursor);
+
+            const auto location = Utils::getCursorSourceLocation(parent);
+            ClassInfo baseClass{};
+
+            baseClass.className = Utils::getCursorSpelling(parent);
+            baseClass.sourceLocation = location.first;
+            baseClass.sourceLocationFullPath = location.second;
+            if (childKind == CXCursor_TemplateRef) {
+                baseClass.isTemplateClass = true;
+            } else if (childKind == CXCursor_TemplateRef) {
+                baseClass.isTemplateClass = false;
+            }
+            classInfo->baseClass.emplace_back(baseClass);
+
             return CXChildVisit_Continue;
         };
 
-        clang_visitChildren(cursor, visitor, nullptr);
-
+        clang_visitChildren(cursor, visitor, classInfo);
     } else if (kind == CXCursor_FunctionDecl) {
         /* Collect the template parameter kinds from the base template. */
         const int NumTemplateArgs = clang_Cursor_getNumTemplateArguments(cursor);
@@ -167,7 +180,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientD
         std::cout << "  " << name << ": " << endLine - startLine << "\n";
     } else if (kind == CXCursor_ParmDecl) {
         auto typeName = Utils::getCursorTypeString(cursor);
-        auto s2 = Utils::CXStringToString(
+        auto s2 = Utils::cXStringToStdString(
             clang_getCursorDisplayName(clang_getCursorSemanticParent(clang_getCursorReferenced(cursor))));
 
         const CXCursorVisitor visitor =
@@ -185,12 +198,12 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientD
                 CXFile file;
                 unsigned line, column, offset;
                 clang_getFileLocation(location, &file, &line, &column, &offset);
-                auto file_name = Utils::CXFileToFilepath(file);
+                auto file_name = Utils::cXFileToStdString(file);
 
                 std::cout << "  " << argName;
                 return CXChildVisit_Break;
             }
-    
+            return CXChildVisit_Continue;
         };
 
         clang_visitChildren(cursor, visitor, nullptr);
@@ -209,7 +222,7 @@ CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientD
         CXFile file;
         unsigned line, column, offset;
         clang_getFileLocation(location, &file, &line, &column, &offset);
-        auto file_name = Utils::CXStringToString(clang_getFileName(file));
+        auto file_name = Utils::cXStringToStdString(clang_getFileName(file));
         std::cout << "  " << name << ": " "\n";
 
     }
