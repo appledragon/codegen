@@ -14,6 +14,9 @@ add_executable(vcf-codegen
         ClassInfo.cpp
         FileGenerator.h
         FileGenerator.cpp
+        HeaderParser.h
+        ClassParser.h
+        MethodParser.h
         )
 
 target_include_directories(vcf-codegen
@@ -27,8 +30,8 @@ target_link_libraries(vcf-codegen PUBLIC libclang jinja2cpp)
 set_target_properties( vcf-codegen
 		PROPERTIES
         CXX_STANDARD 20
-		LIBRARY_OUTPUT_DIRECTORY_DEBUG "${UT_BIN_PATH}"
-		LIBRARY_OUTPUT_DIRECTORY_RELEASE "${UT_BIN_PATH}"
+		LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
+		LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
 		)
 
 if (APPLE)
