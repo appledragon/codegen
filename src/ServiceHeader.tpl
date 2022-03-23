@@ -9,6 +9,7 @@
 #include "adapters/I{{ adapter_name }}.h"
 #include "services/I{{ service_name }}.h"
 
+using namespace vcf;
 using ::testing::_;
 using ::testing::Invoke;
 
@@ -35,6 +36,10 @@ public:
         return std::make_shared<Mock{{ service_name }}>(serviceCore);
     }
 
+    virtual bool init() override { return true; }
+    virtual void unInit() override {}
+    virtual void setupAdapter(const std::shared_ptr<IAdapter> &adapter = nullptr) override {}
+    
 private:
     std::shared_ptr<I{{ service_name }}> real{{ service_name }}{ nullptr };
     std::shared_ptr<I{{ adapter_name }}> mMock{{ adapter_name }}{ nullptr };

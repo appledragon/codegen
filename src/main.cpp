@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     clang_disposeTranslationUnit(translation_unit);
     clang_disposeIndex(index);
     FileGenerator generator;
-    generator.setOutputFilePath(R"(C:\project\common\unittests\mock\services)");
+    generator.setOutputFilePath(R"(C:\project\common\unittests\mock\adapters)");
     generator.generateFile(classInfo);
     return 0;
 }

@@ -7,35 +7,25 @@ using namespace vcf;
 using ::testing::_;
 using ::testing::Invoke;
 
-class MockUserAdapter : public IUserAdapter
+class Mock{{ adapter_name }} : public I{{ adapter_name }}
 {
 public:
-    ~MockUserAdapter() override = default;
-    explicit MockUserAdapter(const vcf::weakHandle<INetworkManager>& networkManager);
+    ~Mock{{ adapter_name }}() override = default;
+    explicit Mock{{ adapter_name }}(const vcf::weakHandle<INetworkManager>& networkManager);
 
-    static std::shared_ptr<IUserAdapter> CreateMockInstance(const vcf::weakHandle<INetworkManager>& networkManager)
+    static std::shared_ptr<I{{ adapter_name }}> CreateMockInstance(const vcf::weakHandle<INetworkManager>& networkManager)
     {
-        return std::make_shared<MockUserAdapter>(networkManager);
+        return std::make_shared<Mock{{ adapter_name }}>(networkManager);
     }
 
-            // GET /v1/user/get-upload-url get user's file upload url
-    MOCK_METHOD( void ,getUploadUrl,(const std::string& fileSuffix,
-                              const model::UploadResourceType& type,
-                 const internalCallback::innerUploadUrlCallback& callback),
-                (override));
-
-    // PUT /v1/user/avatar/edit update user's avatar
-    MOCK_METHOD( void ,updateAvatar,(const std::string& avatarUrl,
-                              const std::string& resourceUuid,
-                 const internalCallback::simpleStringCallback& callback),(override));
-
-    // POST /v1/user/device/register device register
-    MOCK_METHOD( void ,registerDevice,(const vcf::model::DeviceInfo& deviceInfo,
-                                const std::string& deviceToken,
-                 const internalCallback::simpleCallback& callback),
-  
+{% for method in method_list %}
+    MOCK_METHOD({{ return_list[loop.index0] }}, 
+                {{method}}, 
+                ({% for arg in arg_list[loop.index0][method] %}{{arg}}{{ "," if not loop.last }}{% endfor %}), 
+                ({{ keyword_list[loop.index0] }}));
+{% endfor %}
 
 private:
-
-    std::shared_ptr<IUserAdapter> realUserAdapter;
+    std::shared_ptr<I{{ adapter_name }}> real{{ adapter_name }};
+    vcf::weakHandle<vcf::INetworkManager> mNetworkManager;
 };

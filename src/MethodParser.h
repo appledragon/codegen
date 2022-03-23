@@ -16,12 +16,9 @@ public:
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
 
-            const auto function_name = Utils::getCursorNameString(cursor);
-        const auto return_type = Utils::getCursorTypeString(clang_getResultType(type));
-
         auto method = std::make_shared<MethodInfo>();
-        method->methodName = function_name;
-        method->methodReturnType = return_type;
+        method->methodName = Utils::getCursorNameString(cursor);;
+        method->methodReturnType = Utils::getCursorTypeString(clang_getResultType(type));
 
         method->isConst = clang_CXXMethod_isConst(cursor);
         method->isVirtual = clang_CXXMethod_isVirtual(cursor);
@@ -33,6 +30,14 @@ public:
             const CXCursorKind childKind = clang_getCursorKind(cursor);
             if (childKind == CXCursor_ParmDecl) {
                 const auto arg = std::make_shared<ArgInfo>();
+                const auto type = clang_getCursorType(cursor);
+                if (Utils::isBuiltinType(type)) {
+                    arg->argName = Utils::getCursorNameString(cursor);
+                    arg->argType = Utils::getCursorTypeString(cursor);
+                    methodInfo->methodArgs.emplace_back(*arg);
+                    return CXChildVisit_Continue;
+                }
+
                 const CXCursorVisitor visitor =
                     [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
                     const auto argInfo = static_cast<ArgInfo*>(client_data);

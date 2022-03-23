@@ -138,4 +138,9 @@ public:
         const auto underlying = clang_getTypedefDeclUnderlyingType(referenced);
         return getCursorTypeString(underlying);
     }
+
+    static bool isBuiltinType(const CXType& type)
+    {
+        return type.kind >= CXType_FirstBuiltin && type.kind <= CXType_LastBuiltin;
+    }
 };
