@@ -25,4 +25,7 @@ private:
 
 	void RenderFile(const std::string& input, const std::string& output, const jinja2::ValuesMap& map);
 
+	void generateNormalByJinja(const std::shared_ptr<ClassInfo>& classInfo);
+        void generateNormalHeaderByJinja(const std::shared_ptr<ClassInfo>& classInfo);
+        void generateNormalCppByJinja(const std::shared_ptr<ClassInfo>& classInfo);
 };

@@ -17,7 +17,7 @@ public:
         const CXType type = clang_getCursorType(cursor);
 
         auto method = std::make_shared<MethodInfo>();
-        method->methodName = Utils::getCursorNameString(cursor);;
+        method->methodName = Utils::getCursorNameString(cursor);
         method->methodReturnType = Utils::getCursorTypeString(clang_getResultType(type));
 
         method->isConst = clang_CXXMethod_isConst(cursor);
@@ -31,7 +31,19 @@ public:
             if (childKind == CXCursor_ParmDecl) {
                 const auto arg = std::make_shared<ArgInfo>();
                 const auto type = clang_getCursorType(cursor);
-                if (Utils::isBuiltinType(type)) {
+                const auto isBuiltinType = Utils::isBuiltinType(type);
+                arg->isBuiltinType = isBuiltinType;
+                if (isBuiltinType) {
+                    arg->argName = Utils::getCursorNameString(cursor);
+                    arg->argType = Utils::getCursorTypeString(cursor);
+                    methodInfo->methodArgs.emplace_back(*arg);
+                    return CXChildVisit_Continue;
+                }
+
+                if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference) {
+                    CXType pointee = clang_getPointeeType(type);
+
+                   // arg->argName = Utils::getCursorNameString(referenced);
                     arg->argName = Utils::getCursorNameString(cursor);
                     arg->argType = Utils::getCursorTypeString(cursor);
                     methodInfo->methodArgs.emplace_back(*arg);

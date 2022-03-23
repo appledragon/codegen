@@ -1,7 +1,7 @@
 #pragma once
 #include <gmock/gmock.h>
 
-#include "adapters/IUserAdapter.h"
+#include "adapters/I{{ adapter_name }}.h"
 
 using namespace vcf;
 using ::testing::_;

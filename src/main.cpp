@@ -22,6 +22,7 @@ int main(int argc, char** argv)
         "-std=c++17",
         R"(-IC:\project\libclang\lib\clang\13.0.0\include)",
         R"(-IC:\project\common\src)",
+        R"(-IC:\project\common\vendors\nlohmann_json\include)",
         R"(-IC:\project\common\vendors\glog\win\x64\Release\include)",
         R"(-IC:\project\common\vendors\protobuf\include)"
     };

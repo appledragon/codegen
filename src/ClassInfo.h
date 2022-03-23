@@ -13,7 +13,7 @@ public:
     std::string sourceLocationFullPath;  // header file full path in disk
     bool isConst{false};
     bool isReference{false};
-    bool isPod{false};
+    bool isBuiltinType{false};
 };
 
 class MethodInfo
