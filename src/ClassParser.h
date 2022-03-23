@@ -28,25 +28,31 @@ public:
         classInfo->sourceLocationFullPath = location.second;
 
         const CXCursorVisitor visitor =
-            [](CXCursor cursor, CXCursor parent, CXClientData client_data)  {
+            [](CXCursor cursor, CXCursor parent, CXClientData client_data) {
 
             const CXCursorKind childKind = clang_getCursorKind(cursor);
-            if (childKind != CXCursor_CXXBaseSpecifier)
+            if (childKind != CXCursor_CXXBaseSpecifier && childKind != CXCursor_TemplateRef &&
+                childKind != CXCursor_NamespaceRef)
                 return CXChildVisit_Continue;
 
             const auto classInfo = static_cast<ClassInfo*>(client_data);
-            const auto location = Utils::getCursorSourceLocation(cursor);
-            ClassInfo baseClass{};
 
-            baseClass.className = Utils::getCursorSpelling(cursor);
-            baseClass.sourceLocation = location.first;
-            baseClass.sourceLocationFullPath = location.second;
-            if (childKind == CXCursor_TemplateRef) {
-                baseClass.isTemplateClass = true;
-            } else if (childKind == CXCursor_TypeRef) {
-                baseClass.isTemplateClass = false;
+            std::shared_ptr<ClassInfo> baseClass{nullptr};
+            if (childKind == CXCursor_CXXBaseSpecifier) {
+                const auto baseClass = std::make_shared<ClassInfo>();
+                const auto location = Utils::getCursorSourceLocation(cursor);
+
+                baseClass->className = Utils::getCursorSpelling(cursor);
+                baseClass->sourceLocation = location.first;
+                baseClass->sourceLocationFullPath = location.second;
+                classInfo->baseClass.emplace_back(*baseClass);
+
+
+            } else if (childKind == CXCursor_TemplateRef && baseClass) {
+                baseClass->isTemplateClass = true;
+            } else if (childKind == CXCursor_NamespaceRef && baseClass) {
+                //  baseClass->isTemplateClass = true;
             }
-            classInfo->baseClass.emplace_back(baseClass);
             return CXChildVisit_Continue;
         };
 
