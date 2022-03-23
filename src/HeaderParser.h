@@ -24,27 +24,7 @@ public:
         if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
             ClassParser::parse(cursor, parent, clientData);
         } else if (kind == CXCursor_Namespace) {
-            printf("name space is:%s\n", name.c_str());
         } else if (kind == CXCursor_CXXBaseSpecifier) {
-            const enum CX_CXXAccessSpecifier access = clang_getCXXAccessSpecifier(cursor);
-            const unsigned isVirtual = clang_isVirtualBase(cursor);
-            const char* accessStr = nullptr;
-
-            switch (access) {
-                case CX_CXXInvalidAccessSpecifier:
-                    accessStr = "invalid";
-                    break;
-                case CX_CXXPublic:
-                    accessStr = "public";
-                    break;
-                case CX_CXXProtected:
-                    accessStr = "protected";
-                    break;
-                case CX_CXXPrivate:
-                    accessStr = "private";
-                    break;
-            }
-
         } else if (kind == CXCursor_FunctionDecl) {
             /* Collect the template parameter kinds from the base template. */
             const int NumTemplateArgs = clang_Cursor_getNumTemplateArguments(cursor);
@@ -73,27 +53,11 @@ public:
         } else if (kind == CXCursor_CXXMethod) {
             MethodParser::parse(cursor, parent, clientData);
         } else if (kind == CXCursor_FunctionTemplate) {
-            const CXSourceRange extent = clang_getCursorExtent(cursor);
-            const CXSourceLocation startLocation = clang_getRangeStart(extent);
-            const CXSourceLocation endLocation = clang_getRangeEnd(extent);
-
-            unsigned int startLine = 0, startColumn = 0;
-            unsigned int endLine = 0, endColumn = 0;
-
-            clang_getSpellingLocation(startLocation, nullptr, &startLine, &startColumn, nullptr);
-            clang_getSpellingLocation(endLocation, nullptr, &endLine, &endColumn, nullptr);
-
-            std::cout << "  " << name << ": " << endLine - startLine << "\n";
         } else if (kind == CXCursor_ParmDecl) {
             auto typeName = Utils::getCursorTypeString(cursor);
 
             std::cout << "  " << name;
         } else if (kind == CXCursor_TypeRef) {
-            const auto argType = clang_getCursorType(cursor);
-            const auto parentType = clang_getCursorKind(parent);
-            if (parentType == CXCursor_ParmDecl) {
-            }
-
         } else {
             CXSourceRange range = clang_getCursorExtent(cursor);
             CXSourceLocation location = clang_getRangeStart(range);
@@ -101,9 +65,7 @@ public:
             unsigned line, column, offset;
             clang_getFileLocation(location, &file, &line, &column, &offset);
             auto file_name = Utils::cXStringToStdString(clang_getFileName(file));
-            std::cout << "  " << name
-                      << ": "
-                         "\n";
+            std::cout << name;
         }
 
         return CXChildVisit_Recurse;

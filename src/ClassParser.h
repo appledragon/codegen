@@ -17,12 +17,11 @@ public:
         const CXType type = clang_getCursorType(cursor);
 
         classInfo->className = name;
-        printf("class name is:%s\n", name.c_str());
+
         if (clang_getCursorKind(parent) == CXCursor_Namespace) {
             const auto ns = Utils::getCursorSpelling(parent);
             classInfo->classNameSpace = ns;
         }
-
         const auto location = Utils::getCursorSourceLocation(cursor);
         classInfo->sourceLocation = location.first;
         classInfo->sourceLocationFullPath = location.second;
