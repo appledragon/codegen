@@ -29,7 +29,7 @@ void FileGenerator::generateFile(const std::shared_ptr<ClassInfo>& classInfo)
 
     mClassName = classInfo->className.substr(1, classInfo->className.length());
 
-    if (classInfo->className.ends_with("Service")) {
+    if (classInfo->className.rfind("Service") != std::string::npos) {
         // ILoginService -> LoginService
 
         // ILoginService -> LoginAdapter
@@ -37,7 +37,7 @@ void FileGenerator::generateFile(const std::shared_ptr<ClassInfo>& classInfo)
         mAdapterName += "Adapter";
 
         generateServiceByJinja(classInfo);
-    } else if (classInfo->className.ends_with("Adapter")) {
+    } else if (classInfo->className.rfind("Adapter") != std::string::npos) {
         // ILoginAdapter -> LoginAdapter
         mAdapterName = classInfo->className.substr(1, classInfo->className.length());
         generateAdapterByJinja(classInfo);

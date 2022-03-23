@@ -29,7 +29,7 @@ target_link_libraries(vcf-codegen PUBLIC libclang jinja2cpp)
 
 set_target_properties( vcf-codegen
 		PROPERTIES
-        CXX_STANDARD 20
+        CXX_STANDARD 17
 		LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
 		LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
 		)

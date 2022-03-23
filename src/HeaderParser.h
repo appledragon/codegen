@@ -16,7 +16,6 @@ public:
         if (clang_Location_isFromMainFile(clang_getCursorLocation(cursor)) == 0)
             return CXChildVisit_Continue;
 
-        auto classInfo = static_cast<ClassInfo*>(clientData);
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
