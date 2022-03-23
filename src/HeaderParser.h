@@ -58,8 +58,8 @@ public:
             std::cout << "  " << name;
         } else if (kind == CXCursor_TypeRef) {
         } else {
-            CXSourceRange range = clang_getCursorExtent(cursor);
-            CXSourceLocation location = clang_getRangeStart(range);
+            const CXSourceRange range = clang_getCursorExtent(cursor);
+            const CXSourceLocation location = clang_getRangeStart(range);
             CXFile file;
             unsigned line, column, offset;
             clang_getFileLocation(location, &file, &line, &column, &offset);

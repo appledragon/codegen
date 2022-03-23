@@ -34,13 +34,14 @@ public:
     static char* baseName(const char* path)
     {
         char* base1 = const_cast<char*>(strrchr(path, '/'));
-        char* base2 = const_cast<char*>(strrchr(path, '\\'));
-        if (base1 && base2)
+        if (char * base2 = const_cast<char*>(strrchr(path, '\\')); base1 && base2)
             return ((base1 > base2) ? base1 + 1 : base2 + 1);
-        else if (base1)
-            return (base1 + 1);
-        else if (base2)
-            return (base2 + 1);
+        else {
+            if (base1)
+                return (base1 + 1);
+            if (base2)
+                return (base2 + 1);
+        }
 
         return const_cast<char*>(path);
     }
@@ -48,8 +49,7 @@ public:
     static char* dirname(char* path)
     {
         char* base1 = strrchr(path, '/');
-        char* base2 = strrchr(path, '\\');
-        if (base1 && base2)
+        if (char * base2 = strrchr(path, '\\'); base1 && base2)
             if (base1 > base2)
                 *base1 = 0;
             else
@@ -74,8 +74,7 @@ public:
         const CXSourceLocation Loc = clang_getCursorLocation(cursor);
         CXFile file;
         clang_getExpansionLocation(Loc, &file, nullptr, nullptr, nullptr);
-        const CXString source = clang_getFileName(file);
-        if (!clang_getCString(source)) {
+        if (const CXString source = clang_getFileName(file); !clang_getCString(source)) {
             clang_disposeString(source);
             return "<invalid loc>";
         } else {
@@ -104,14 +103,9 @@ public:
     {
         const auto definition = clang_getCursorDefinition(cursor);
 
-        // If the definition is null, then there is no definition in this translation
-        // unit, so this cursor must be a forward declaration.
         if (clang_equalCursors(definition, clang_getNullCursor()))
             return true;
 
-        // If there is a definition, then the forward declaration and the definition
-        // are in the same translation unit. This cursor is the forward declaration if
-        // it is _not_ the definition.
         return !clang_equalCursors(cursor, definition);
     }
 
