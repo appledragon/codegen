@@ -17,6 +17,7 @@ add_executable(vcf-codegen
         HeaderParser.h
         ClassParser.h
         MethodParser.h
+        EnumParser.h
         )
 
 target_include_directories(vcf-codegen
