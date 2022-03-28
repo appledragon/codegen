@@ -22,7 +22,7 @@ public:
 
         if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
             ClassParser::parse(cursor, parent, clientData);
-        } else if (kind == CXCursor_EnumDecl) {
+        } else if (kind == CXCursor_EnumDecl && !Utils::isForwardDeclaration(cursor)) {
             EnumParser::parse(cursor, parent, clientData);
         } else if (kind == CXCursor_Namespace) {
         } else if (kind == CXCursor_CXXBaseSpecifier) {
