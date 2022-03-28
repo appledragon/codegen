@@ -65,7 +65,7 @@ public:
             CXFile file;
             unsigned line, column, offset;
             clang_getFileLocation(location, &file, &line, &column, &offset);
-            auto file_name = Utils::cXStringToStdString(clang_getFileName(file));
+            auto file_name = Utils::CXStringToStdString(clang_getFileName(file));
             std::cout << name;
         }
 

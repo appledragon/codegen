@@ -4,7 +4,7 @@
 class Utils
 {
 public:
-    static std::string cXStringToStdString(const CXString& text)
+    static std::string CXStringToStdString(const CXString& text)
     {
         std::string result;
 
@@ -16,9 +16,9 @@ public:
         return result;
     }
 
-    static std::string cXFileToStdString(const CXFile& file)
+    static std::string CXFileToStdString(const CXFile& file)
     {
-        return cXStringToStdString(clang_getFileName(file));
+        return CXStringToStdString(clang_getFileName(file));
     }
 
     static std::string getCursorSpelling(const CXCursor& cursor)
@@ -86,17 +86,17 @@ public:
 
     static std::string getCursorTypeString(const CXType& type)
     {
-        return cXStringToStdString(clang_getTypeSpelling(type));
+        return CXStringToStdString(clang_getTypeSpelling(type));
     }
 
     static std::string getCursorTypeString(const CXCursor& cursor)
     {
-        return cXStringToStdString(clang_getTypeSpelling(clang_getCursorType(cursor)));
+        return CXStringToStdString(clang_getTypeSpelling(clang_getCursorType(cursor)));
     }
 
     static std::string getCursorNameString(const CXCursor& cursor)
     {
-        return cXStringToStdString(clang_getCursorSpelling(cursor));
+        return CXStringToStdString(clang_getCursorSpelling(cursor));
     }
 
     static bool isForwardDeclaration(const CXCursor& cursor)
@@ -122,7 +122,7 @@ public:
         CXFile file;
         unsigned line, column, offset;
         clang_getFileLocation(location, &file, &line, &column, &offset);
-        const auto fileLocation = cXFileToStdString(file);
+        const auto fileLocation = CXFileToStdString(file);
         return {fileName, fileLocation};
     }
 

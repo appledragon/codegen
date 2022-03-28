@@ -71,7 +71,7 @@ public:
                         argInfo->name = Utils::getCursorNameString(parent);
                         argInfo->type = Utils::getCursorTypeString(parent);
                         auto s2 =
-                            Utils::cXStringToStdString(clang_getCursorSpelling(clang_getCursorSemanticParent(parent)));
+                            Utils::CXStringToStdString(clang_getCursorSpelling(clang_getCursorSemanticParent(parent)));
                         const auto location = Utils::getCursorSourceLocation(cursor);
                         argInfo->sourceLocation = location.first;
                         argInfo->sourceLocationFullPath = location.second;
