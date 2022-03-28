@@ -137,4 +137,16 @@ public:
     {
         return type.kind >= CXType_FirstBuiltin && type.kind <= CXType_LastBuiltin;
     }
+    static std::string getCursorUSRString(const CXCursor& cursor)
+    {
+        const CXString spell = clang_getCursorUSR(cursor);
+        std::string usr(clang_getCString(spell));
+        clang_disposeString(spell);
+        return usr;
+    }
+
+    static std::string getTypeUSRString(const CXType& type)
+    {
+        return getCursorUSRString(clang_getTypeDeclaration(type));
+    }
 };

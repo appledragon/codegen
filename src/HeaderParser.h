@@ -25,32 +25,13 @@ public:
         } else if (kind == CXCursor_EnumDecl && !Utils::isForwardDeclaration(cursor)) {
             EnumParser::parse(cursor, parent, clientData);
         } else if (kind == CXCursor_Namespace) {
+            CXCursor& parentNameSpace = clang_getCursorSemanticParent(cursor);
+            while (parentNameSpace.kind == CXCursor_Namespace) {
+                const auto usr = Utils::getCursorUSRString(parentNameSpace);
+                parentNameSpace = clang_getCursorSemanticParent(parentNameSpace);
+            }
         } else if (kind == CXCursor_CXXBaseSpecifier) {
         } else if (kind == CXCursor_FunctionDecl) {
-            /* Collect the template parameter kinds from the base template. */
-            const int NumTemplateArgs = clang_Cursor_getNumTemplateArguments(cursor);
-            if (NumTemplateArgs < 0) {
-                printf(" [no template arg info]");
-            }
-            for (int i = 0; i < NumTemplateArgs; i++) {
-                const enum CXTemplateArgumentKind TAK = clang_Cursor_getTemplateArgumentKind(cursor, i);
-                switch (TAK) {
-                    case CXTemplateArgumentKind_Type: {
-                        const CXType T = clang_Cursor_getTemplateArgumentType(cursor, i);
-                        const CXString S = clang_getTypeSpelling(T);
-                        printf(" [Template arg %d: kind: %d, type: %s]", i, TAK, clang_getCString(S));
-                        clang_disposeString(S);
-                    } break;
-                    case CXTemplateArgumentKind_Integral:
-                        printf(" [Template arg %d: kind: %d, intval: %lld]",
-                               i,
-                               TAK,
-                               clang_Cursor_getTemplateArgumentValue(cursor, i));
-                        break;
-                    default:
-                        printf(" [Template arg %d: kind: %d]\n", i, TAK);
-                }
-            }
         } else if (kind == CXCursor_CXXMethod) {
             MethodParser::parse(cursor, parent, clientData);
         } else if (kind == CXCursor_FunctionTemplate) {
