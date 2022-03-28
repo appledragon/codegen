@@ -5,10 +5,10 @@
 class ArgInfo
 {
 public:
-    std::string argType;
-    std::string argUnderlyingType;
-    std::string argName;
-    std::string argFullName;
+    std::string type;
+    std::string underlyingType;
+    std::string name;
+    std::string fullName;
     std::string sourceLocation;          // header file name;
     std::string sourceLocationFullPath;  // header file full path in disk
     bool isConst{false};
@@ -16,10 +16,12 @@ public:
     bool isBuiltinType{false};
 };
 
+using ReturnInfo = ArgInfo;
+
 class MethodInfo
 {
 public:
-    std::string methodReturnType;
+    ReturnInfo methodReturnInfo;
     std::string methodName;
     std::string methodFullName;
     std::vector<ArgInfo> methodArgs{};

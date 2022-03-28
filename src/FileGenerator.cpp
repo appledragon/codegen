@@ -83,7 +83,7 @@ void FileGenerator::generateServiceHeaderByJinja(const std::shared_ptr<ClassInfo
         jinja2::ValuesList arg;
         const auto argSize = method.methodArgs.size();
         for (size_t i = 0; i < argSize; i++) {
-            arg.push_back(method.methodArgs.at(i).argType);
+            arg.push_back(method.methodArgs.at(i).type);
 
         }
         args.emplace(method.methodName, arg);
@@ -98,7 +98,7 @@ void FileGenerator::generateServiceHeaderByJinja(const std::shared_ptr<ClassInfo
         }
         keywordList.push_back(strKeyword);
         methodList.push_back(method.methodName);
-        returnList.push_back(method.methodReturnType);
+        returnList.push_back(method.methodReturnInfo.type);
         argList.push_back(args);
     }
 
@@ -172,7 +172,7 @@ void FileGenerator::generateNormalHeaderByJinja(const std::shared_ptr<ClassInfo>
         jinja2::ValuesList arg;
         const auto argSize = method.methodArgs.size();
         for (size_t i = 0; i < argSize; i++) {
-            arg.push_back(method.methodArgs.at(i).argType);
+            arg.push_back(method.methodArgs.at(i).type);
         }
         args.emplace(method.methodName, arg);
         std::string strKeyword;
@@ -186,7 +186,7 @@ void FileGenerator::generateNormalHeaderByJinja(const std::shared_ptr<ClassInfo>
         }
         keywordList.push_back(strKeyword);
         methodList.push_back(method.methodName);
-        returnList.push_back(method.methodReturnType);
+        returnList.push_back(method.methodReturnInfo.type);
         argList.push_back(args);
     }
 
@@ -249,7 +249,7 @@ void FileGenerator::generateAdapterHeaderByJinja(const std::shared_ptr<ClassInfo
         jinja2::ValuesList arg;
         const auto argSize = method.methodArgs.size();
         for (size_t i = 0; i < argSize; i++) {
-            arg.push_back(method.methodArgs.at(i).argType);
+            arg.push_back(method.methodArgs.at(i).type);
         }
         args.emplace(method.methodName, arg);
         std::string strKeyword;
@@ -263,7 +263,7 @@ void FileGenerator::generateAdapterHeaderByJinja(const std::shared_ptr<ClassInfo
         }
         keywordList.push_back(strKeyword);
         methodList.push_back(method.methodName);
-        returnList.push_back(method.methodReturnType);
+        returnList.push_back(method.methodReturnInfo.type);
         argList.push_back(args);
     }
 

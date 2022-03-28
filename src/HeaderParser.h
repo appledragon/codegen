@@ -20,11 +20,7 @@ public:
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
 
-        if (Utils::isForwardDeclaration(cursor)) {
-            return CXChildVisit_Continue;
-        }
-
-        if (kind == CXCursor_ClassDecl) {
+        if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
             ClassParser::parse(cursor, parent, clientData);
         } else if (kind == CXCursor_EnumDecl) {
             EnumParser::parse(cursor, parent, clientData);
