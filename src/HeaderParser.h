@@ -25,7 +25,7 @@ public:
         } else if (kind == CXCursor_EnumDecl && !Utils::isForwardDeclaration(cursor)) {
             EnumParser::parse(cursor, parent, clientData);
         } else if (kind == CXCursor_Namespace) {
-            CXCursor& parentNameSpace = clang_getCursorSemanticParent(cursor);
+            CXCursor parentNameSpace = clang_getCursorSemanticParent(cursor);
             while (parentNameSpace.kind == CXCursor_Namespace) {
                 const auto usr = Utils::getCursorUSRString(parentNameSpace);
                 parentNameSpace = clang_getCursorSemanticParent(parentNameSpace);
