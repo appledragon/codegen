@@ -48,24 +48,12 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Set Library Type
 if (APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    if (IOS)
-        set(library_type FRAMEWORK_IOS)
-        set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "" CACHE INTERNAL "")
-    else (IOS)
-        set(library_type FRAMEWORK_MACOSX)
-    endif (IOS)
-elseif (ANDROID)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    set(library_type SHARED)
+    set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "" CACHE INTERNAL "")
 elseif (WIN32 OR WIN64)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zc:wchar_t-")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zc:wchar_t-")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
-    set(library_type SHARED)
-elseif (LINUX)
-    set(library_type SHARED)
 endif (APPLE)
 
 
@@ -99,3 +87,7 @@ elseif (WIN32 OR WIN64)
     file(GLOB LIBCLANG_RUNTIME "../libclang/bin/libclang.dll")
     file(COPY ${LIBCLANG_RUNTIME} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
 endif (APPLE)
+
+file(GLOB JINJA_TPL "${CMAKE_CURRENT_SOURCE_DIR}/src/generator/jinja_tpl/*.tpl")
+file(COPY ${JINJA_TPL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
+    
