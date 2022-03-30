@@ -6,6 +6,7 @@ class ArgInfo
 {
 public:
     std::string type;
+    std::string rawType; // remove cv,reference
     std::string underlyingType;
     std::string name;
     std::string fullName;

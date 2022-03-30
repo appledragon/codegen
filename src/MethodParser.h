@@ -59,8 +59,8 @@ public:
                    // arg->argName = Utils::getCursorNameString(referenced);
                     arg->name = Utils::getCursorNameString(cursor);
                     arg->type = Utils::getCursorTypeString(cursor);
-                    methodInfo->methodArgs.emplace_back(*arg);
-                    return CXChildVisit_Continue;
+                  //  methodInfo->methodArgs.emplace_back(*arg);
+                    //return CXChildVisit_Continue;
                 }
 
                 const CXCursorVisitor visitor =
@@ -68,8 +68,8 @@ public:
                     const auto argInfo = static_cast<ArgInfo*>(client_data);
                     const CXCursorKind childKind = clang_getCursorKind(cursor);
                     if (childKind == CXCursor_TypeRef || childKind == CXCursor_TemplateRef) {
-                        argInfo->name = Utils::getCursorNameString(parent);
-                        argInfo->type = Utils::getCursorTypeString(parent);
+                        auto referenced = clang_getCursorReferenced(cursor);
+                        argInfo->rawType = Utils::getCursorTypeString(referenced);
                         auto s2 =
                             Utils::CXStringToStdString(clang_getCursorSpelling(clang_getCursorSemanticParent(parent)));
                         const auto location = Utils::getCursorSourceLocation(cursor);

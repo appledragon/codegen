@@ -41,7 +41,9 @@ void FileGenerator::generateFile(const std::shared_ptr<ClassInfo>& classInfo)
         // ILoginAdapter -> LoginAdapter
         mAdapterName = classInfo->className.substr(1, classInfo->className.length());
         generateAdapterByJinja(classInfo);
-    } else {
+    } else if (classInfo->className.rfind("ViewModel") != std::string::npos) {
+        generateViewModelByJinja(classInfo);
+    } else{
         generateNormalByJinja(classInfo);
     }
 }
@@ -228,6 +230,22 @@ void FileGenerator::generateNormalCppByJinja(const std::shared_ptr<ClassInfo>& c
     params.emplace("arg_list", argList);
 
     RenderFile("NormalCpp.tpl", mOutputDir + "\\Mock" + mClassName + ".cpp", params);
+}
+
+void FileGenerator::generateViewModelByJinja(const std::shared_ptr<ClassInfo>& classInfo)
+{
+    generateViewModelJniByJinja(classInfo);
+    generateViewModelJavaByJinja(classInfo);
+}
+
+void FileGenerator::generateViewModelJniByJinja(const std::shared_ptr<ClassInfo>& classInfo)
+{
+    throw std::logic_error("The method or operation is not implemented.");
+}
+
+void FileGenerator::generateViewModelJavaByJinja(const std::shared_ptr<ClassInfo>& classInfo)
+{
+    throw std::logic_error("The method or operation is not implemented.");
 }
 
 void FileGenerator::generateAdapterHeaderByJinja(const std::shared_ptr<ClassInfo>& classInfo)
