@@ -87,6 +87,7 @@ include_directories()
 include_directories(
     ${LLVM_PATH}/include
     ./src
+    ./src/generator
 )
 
 add_subdirectory( src )

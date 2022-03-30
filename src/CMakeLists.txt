@@ -12,8 +12,8 @@ add_executable(vcf-codegen
         Utils.h
         ClassInfo.h
         ClassInfo.cpp
-        FileGenerator.h
-        FileGenerator.cpp
+        generator/FileGenerator.h
+        generator/FileGenerator.cpp
         HeaderParser.h
         ClassParser.h
         MethodParser.h
