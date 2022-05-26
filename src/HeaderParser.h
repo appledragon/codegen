@@ -3,8 +3,9 @@
 
 #include <iostream>
 #include <string>
-#include "EnumParser.h"
+
 #include "ClassParser.h"
+#include "EnumParser.h"
 #include "MethodParser.h"
 #include "Utils.h"
 
@@ -43,8 +44,10 @@ public:
         } else {
             const CXSourceRange range = clang_getCursorExtent(cursor);
             const CXSourceLocation location = clang_getRangeStart(range);
-            CXFile file;
-            unsigned line, column, offset;
+            CXFile file = nullptr;
+            unsigned line = 0;
+            unsigned column = 0;
+            unsigned offset = 0;
             clang_getFileLocation(location, &file, &line, &column, &offset);
             auto file_name = Utils::CXStringToStdString(clang_getFileName(file));
             std::cout << name;

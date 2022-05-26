@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+
 #include "ClassInfo.h"
 #include "Utils.h"
 
@@ -11,7 +12,7 @@ class EnumParser
 public:
     static CXChildVisitResult parse(CXCursor cursor, CXCursor parent, CXClientData clientData)
     {
-        const auto classInfo = static_cast<ClassInfo*>(clientData);
+        auto *const classInfo = static_cast<ClassInfo *>(clientData);
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);

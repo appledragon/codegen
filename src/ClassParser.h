@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+
 #include "ClassInfo.h"
 #include "Utils.h"
 
@@ -11,7 +12,7 @@ class ClassParser
 public:
     static CXChildVisitResult parse(CXCursor cursor, CXCursor parent, CXClientData clientData)
     {
-        const auto classInfo = static_cast<ClassInfo*>(clientData);
+        auto *const classInfo = static_cast<ClassInfo *>(clientData);
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
@@ -26,12 +27,10 @@ public:
         classInfo->sourceLocation = location.first;
         classInfo->sourceLocationFullPath = location.second;
 
-        const CXCursorVisitor visitor =
-            [](CXCursor cursor, CXCursor parent, CXClientData client_data) {
-
+        const CXCursorVisitor visitor = [](CXCursor cursor, CXCursor parent, CXClientData client_data) {
             const CXCursorKind childKind = clang_getCursorKind(cursor);
 
-            const auto classInfo = static_cast<ClassInfo*>(client_data);
+            auto *const classInfo = static_cast<ClassInfo *>(client_data);
 
             if (childKind == CXCursor_CXXBaseSpecifier) {
                 const auto baseClass = std::make_shared<ClassInfo>();
@@ -43,7 +42,7 @@ public:
 
                 const CXCursorVisitor visitor =
                     [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
-                    const auto bassClassInfo = static_cast<ClassInfo*>(client_data);
+                    auto *const bassClassInfo = static_cast<ClassInfo *>(client_data);
                     const CXCursorKind childKind = clang_getCursorKind(cursor);
                     if (childKind == CXCursor_TemplateRef) {
                         bassClassInfo->isTemplateClass = true;
@@ -54,7 +53,6 @@ public:
                 };
                 clang_visitChildren(cursor, visitor, baseClass.get());
                 classInfo->baseClass.emplace_back(*baseClass);
-
             }
             return CXChildVisit_Continue;
         };

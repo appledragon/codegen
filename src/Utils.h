@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #ifdef __APPLE__
 #include <libgen.h>
@@ -37,7 +38,7 @@ public:
     static char* baseName(const char* path)
     {
         char* base1 = const_cast<char*>(strrchr(path, '/'));
-        if (char * base2 = const_cast<char*>(strrchr(path, '\\')); base1 && base2)
+        if (char* base2 = const_cast<char*>(strrchr(path, '\\')); base1 && base2)
             return ((base1 > base2) ? base1 + 1 : base2 + 1);
         else {
             if (base1)
@@ -52,7 +53,7 @@ public:
     static char* dirname(char* path)
     {
         char* base1 = strrchr(path, '/');
-        if (char * base2 = strrchr(path, '\\'); base1 && base2)
+        if (char* base2 = strrchr(path, '\\'); base1 && base2)
             if (base1 > base2)
                 *base1 = 0;
             else

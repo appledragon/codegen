@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+
 #include "ClassInfo.h"
 #include "Utils.h"
 
@@ -11,7 +12,7 @@ class MethodParser
 public:
     static CXChildVisitResult parse(CXCursor cursor, CXCursor parent, CXClientData clientData)
     {
-        const auto classInfo = static_cast<ClassInfo*>(clientData);
+        auto *const classInfo = static_cast<ClassInfo *>(clientData);
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
@@ -32,14 +33,13 @@ public:
             method->methodReturnInfo.underlyingType = Utils::getCursorUnderlyingTypeString(returnCursor);
         }
 
-
-        method->isConst = clang_CXXMethod_isConst(cursor);
-        method->isVirtual = clang_CXXMethod_isVirtual(cursor);
-        method->isStatic = clang_CXXMethod_isStatic(cursor);
+        method->isConst = (clang_CXXMethod_isConst(cursor) != 0U);
+        method->isVirtual = (clang_CXXMethod_isVirtual(cursor) != 0U);
+        method->isStatic = (clang_CXXMethod_isStatic(cursor) != 0U);
 
         const CXCursorVisitor visitor =
             [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
-            const auto methodInfo = static_cast<MethodInfo*>(client_data);
+            auto *const methodInfo = static_cast<MethodInfo *>(client_data);
             const CXCursorKind childKind = clang_getCursorKind(cursor);
             if (childKind == CXCursor_ParmDecl) {
                 const auto arg = std::make_shared<ArgInfo>();
@@ -56,16 +56,16 @@ public:
                 if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference) {
                     CXType pointee = clang_getPointeeType(type);
 
-                   // arg->argName = Utils::getCursorNameString(referenced);
+                    // arg->argName = Utils::getCursorNameString(referenced);
                     arg->name = Utils::getCursorNameString(cursor);
                     arg->type = Utils::getCursorTypeString(cursor);
-                  //  methodInfo->methodArgs.emplace_back(*arg);
-                    //return CXChildVisit_Continue;
+                    //  methodInfo->methodArgs.emplace_back(*arg);
+                    // return CXChildVisit_Continue;
                 }
 
                 const CXCursorVisitor visitor =
                     [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
-                    const auto argInfo = static_cast<ArgInfo*>(client_data);
+                    auto *const argInfo = static_cast<ArgInfo *>(client_data);
                     const CXCursorKind childKind = clang_getCursorKind(cursor);
                     if (childKind == CXCursor_TypeRef || childKind == CXCursor_TemplateRef) {
                         auto referenced = clang_getCursorReferenced(cursor);

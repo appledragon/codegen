@@ -1,9 +1,11 @@
 #include "FileGenerator.h"
+
 #include <jinja2cpp/filesystem_handler.h>
 #include <jinja2cpp/template_env.h>
-#include <vector>
-#include <fstream>
+
 #include <filesystem>
+#include <fstream>
+#include <vector>
 
 void FileGenerator::setOutputFilePath(const std::string& path)
 {
@@ -43,7 +45,7 @@ void FileGenerator::generateFile(const std::shared_ptr<ClassInfo>& classInfo)
         generateAdapterByJinja(classInfo);
     } else if (classInfo->className.rfind("ViewModel") != std::string::npos) {
         generateViewModelByJinja(classInfo);
-    } else{
+    } else {
         generateNormalByJinja(classInfo);
     }
 }
@@ -86,7 +88,6 @@ void FileGenerator::generateServiceHeaderByJinja(const std::shared_ptr<ClassInfo
         const auto argSize = method.methodArgs.size();
         for (size_t i = 0; i < argSize; i++) {
             arg.push_back(method.methodArgs.at(i).type);
-
         }
         args.emplace(method.methodName, arg);
         std::string strKeyword;

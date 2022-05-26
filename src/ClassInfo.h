@@ -6,7 +6,7 @@ class ArgInfo
 {
 public:
     std::string type;
-    std::string rawType; // remove cv,reference
+    std::string rawType;  // remove cv,reference
     std::string underlyingType;
     std::string name;
     std::string fullName;
@@ -26,8 +26,8 @@ public:
     std::string methodName;
     std::string methodFullName;
     std::vector<ArgInfo> methodArgs{};
-    bool isConst{ false };
-    bool isVirtual{ false };
+    bool isConst{false};
+    bool isVirtual{false};
     bool isStatic{false};
 };
 
@@ -36,10 +36,9 @@ class ClassInfo
 public:
     std::string classNameSpace;
     std::string className;
-    std::string sourceLocation; // header file name;
+    std::string sourceLocation;          // header file name;
     std::string sourceLocationFullPath;  // header file full path in disk
     std::vector<MethodInfo> methodList{};
     std::vector<ClassInfo> baseClass{};
     bool isTemplateClass{false};
 };
-
