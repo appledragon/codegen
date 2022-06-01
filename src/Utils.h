@@ -5,8 +5,9 @@
 #include <libgen.h>
 #endif
 #include <clang-c/Index.h>
-#include <variant>
+
 #include <cstdint>
+#include <variant>
 
 class Utils
 {
@@ -16,7 +17,7 @@ public:
     {
         std::string result;
 
-        if (!text.data)
+        if (text.data == nullptr)
             return result;
 
         result = std::string(clang_getCString(text));
@@ -79,16 +80,16 @@ public:
     static std::string getCursorSource(const CXCursor& cursor)
     {
         const CXSourceLocation Loc = clang_getCursorLocation(cursor);
-        CXFile file;
+        CXFile file = nullptr;
         clang_getExpansionLocation(Loc, &file, nullptr, nullptr, nullptr);
-        if (const CXString source = clang_getFileName(file); !clang_getCString(source)) {
+        const CXString source = clang_getFileName(file);
+        if (clang_getCString(source) == nullptr) {
             clang_disposeString(source);
             return "<invalid loc>";
-        } else {
-            const char* b = baseName(clang_getCString(source));
-            clang_disposeString(source);
-            return b;
         }
+        const char* b = baseName(clang_getCString(source));
+        clang_disposeString(source);
+        return b;
     }
 
     static std::string getCursorTypeString(const CXType& type)
@@ -110,10 +111,10 @@ public:
     {
         const auto definition = clang_getCursorDefinition(cursor);
 
-        if (clang_equalCursors(definition, clang_getNullCursor()))
+        if (clang_equalCursors(definition, clang_getNullCursor()) != 0U)
             return true;
 
-        return !clang_equalCursors(cursor, definition);
+        return clang_equalCursors(cursor, definition) == 0U;
     }
 
     using sourceFileName = std::string;
@@ -126,8 +127,10 @@ public:
 
         const CXSourceRange range = clang_getCursorExtent(referenced);
         const CXSourceLocation location = clang_getRangeStart(range);
-        CXFile file;
-        unsigned line, column, offset;
+        CXFile file = nullptr;
+        unsigned line = 0;
+        unsigned column = 0;
+        unsigned offset = 0;
         clang_getFileLocation(location, &file, &line, &column, &offset);
         const auto fileLocation = CXFileToStdString(file);
         return {fileName, fileLocation};
@@ -165,7 +168,7 @@ public:
         CXEvalResultKind kind = clang_EvalResult_getKind(res);
         switch (kind) {
             case CXEval_Int: {
-                if (clang_Type_getSizeOf(ctype) > sizeof(int)) {
+                if (clang_Type_getSizeOf(ctype) <= sizeof(int)) {
                     output = clang_EvalResult_isUnsignedInt(res);
                 } else {
                     output = clang_EvalResult_getAsUnsigned(res);
@@ -183,7 +186,7 @@ public:
             default: {
                 const char* val = clang_EvalResult_getAsStr(res);
 
-                if (val) {
+                if (val != nullptr) {
                     output = clang_EvalResult_getAsStr(res);
                 }
             } break;
