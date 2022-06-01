@@ -3,12 +3,20 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
+#include "ClassInfo.h"
 #include "ClassParser.h"
 #include "EnumParser.h"
 #include "MethodParser.h"
 #include "Utils.h"
 
+typedef CXClientData (*fnFindTheRightGirl)(CXCursor cursor, CXCursor parent, void* p_this);
+struct HeaderParserClientData
+{
+    fnFindTheRightGirl p_func = nullptr;
+    void* p_data = nullptr;
+};
 class HeaderParser
 {
 public:
@@ -16,15 +24,26 @@ public:
     {
         if (clang_Location_isFromMainFile(clang_getCursorLocation(cursor)) == 0)
             return CXChildVisit_Continue;
+        
+        if (nullptr == clientData)
+            return CXChildVisit_Break;
+
+        auto* header_parser_client_data = static_cast<HeaderParserClientData* >(clientData);
+        if (nullptr == header_parser_client_data->p_func)
+            return CXChildVisit_Break;
+
+        CXClientData clang_index_client_data = header_parser_client_data->p_func(cursor, parent, header_parser_client_data->p_data);
+        if (nullptr == clang_index_client_data)
+            return CXChildVisit_Continue;
 
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
-
+        
         if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
-            ClassParser::parse(cursor, parent, clientData);
+            ClassParser::parse(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_EnumDecl && !Utils::isForwardDeclaration(cursor)) {
-            EnumParser::parse(cursor, parent, clientData);
+            EnumParser::parse(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_Namespace) {
             CXCursor parentNameSpace = clang_getCursorSemanticParent(cursor);
             while (parentNameSpace.kind == CXCursor_Namespace) {
@@ -34,7 +53,7 @@ public:
         } else if (kind == CXCursor_CXXBaseSpecifier) {
         } else if (kind == CXCursor_FunctionDecl) {
         } else if (kind == CXCursor_CXXMethod) {
-            MethodParser::parse(cursor, parent, clientData);
+            MethodParser::parse(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_FunctionTemplate) {
         } else if (kind == CXCursor_ParmDecl) {
             auto typeName = Utils::getCursorTypeString(cursor);
