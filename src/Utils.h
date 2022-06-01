@@ -168,7 +168,12 @@ public:
         CXEvalResultKind kind = clang_EvalResult_getKind(res);
         switch (kind) {
             case CXEval_Int: {
-                if (clang_Type_getSizeOf(ctype) <= sizeof(int)) {
+                const auto dataLength = clang_Type_getSizeOf(ctype);
+                if (dataLength == 1) {
+                    // bool
+                    clang_EvalResult_getAsInt(res) == 0 ? output = false : output = true;
+                }
+                else if (dataLength <= sizeof(int)) {
                     output = clang_EvalResult_isUnsignedInt(res);
                 } else {
                     output = clang_EvalResult_getAsUnsigned(res);
