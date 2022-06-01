@@ -4,10 +4,14 @@
 #ifdef __APPLE__
 #include <libgen.h>
 #endif
+#include <clang-c/Index.h>
+#include <variant>
+#include <cstdint>
 
 class Utils
 {
 public:
+    using DefaultValueType = std::variant<bool, int, uint64_t, uint32_t, double, float, char, std::string>;
     static std::string CXStringToStdString(const CXString& text)
     {
         std::string result;
@@ -151,5 +155,58 @@ public:
     static std::string getTypeUSRString(const CXType& type)
     {
         return getCursorUSRString(clang_getTypeDeclaration(type));
+    }
+
+    static void EvaluateDefaultValue(const CXCursor& cursor, DefaultValueType& output)
+    {
+        CXType ctype = clang_getCursorType(cursor);
+
+        CXEvalResult res = clang_Cursor_Evaluate(cursor);
+        CXEvalResultKind kind = clang_EvalResult_getKind(res);
+        switch (kind) {
+            case CXEval_Int: {
+                if (clang_Type_getSizeOf(ctype) > sizeof(int)) {
+                    output = clang_EvalResult_isUnsignedInt(res);
+                } else {
+                    output = clang_EvalResult_getAsUnsigned(res);
+                }
+                break;
+            }
+
+            case CXEval_Float:
+                output = clang_EvalResult_getAsDouble(res);
+                break;
+            case CXEval_ObjCStrLiteral:
+            case CXEval_StrLiteral:
+            case CXEval_CFStr:
+            case CXEval_Other:
+            default: {
+                const char* val = clang_EvalResult_getAsStr(res);
+
+                if (val) {
+                    output = clang_EvalResult_getAsStr(res);
+                }
+            } break;
+        }
+        clang_EvalResult_dispose(res);
+    }
+
+    static bool hasDefaultValue(const CXCursorKind& kind, const CXCursor& cursor, DefaultValueType& output)
+    {
+        switch (kind) {
+            case CXCursor_CharacterLiteral:
+            case CXCursor_CompoundLiteralExpr:
+            case CXCursor_FloatingLiteral:
+            case CXCursor_ImaginaryLiteral:
+            case CXCursor_IntegerLiteral:
+            case CXCursor_StringLiteral:
+            case CXCursor_CXXBoolLiteralExpr:
+            case CXCursor_CXXNullPtrLiteralExpr:
+                EvaluateDefaultValue(cursor, output);
+                return true;
+            default:
+                return false;
+        }
+        return false;
     }
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "Utils.h"
 
 class ArgInfo
 {
@@ -12,6 +13,7 @@ public:
     std::string fullName;
     std::string sourceLocation;          // header file name;
     std::string sourceLocationFullPath;  // header file full path in disk
+    Utils::DefaultValueType defaultValue;
     bool isConst{false};
     bool isReference{false};
     bool isBuiltinType{false};

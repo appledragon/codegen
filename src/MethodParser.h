@@ -50,7 +50,7 @@ public:
                     arg->name = Utils::getCursorNameString(cursor);
                     arg->type = Utils::getCursorTypeString(cursor);
                     methodInfo->methodArgs.emplace_back(*arg);
-                    return CXChildVisit_Continue;
+                    // return CXChildVisit_Continue;
                 }
 
                 if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference) {
@@ -78,6 +78,11 @@ public:
                         argInfo->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
                         // return CXChildVisit_Break;
                     }
+                    Utils::DefaultValueType defaultValue;
+                    if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
+                       argInfo->defaultValue = defaultValue;
+                    }
+
                     return CXChildVisit_Continue;
                 };
                 clang_visitChildren(cursor, visitor, arg.get());
