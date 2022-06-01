@@ -74,20 +74,4 @@ public:
 
         return CXChildVisit_Recurse;
     }
-
-     static CXChildVisitResult ParserAllClass(CXCursor cursor, CXCursor parent, CXClientData clientData)
-     {
-         if (clang_Location_isFromMainFile(clang_getCursorLocation(cursor)) == 0 || nullptr == clientData)
-            return CXChildVisit_Continue;
-
-        const CXCursorKind kind = clang_getCursorKind(cursor);
-        const auto name = Utils::getCursorSpelling(cursor);
-        const CXType type = clang_getCursorType(cursor);
-        auto* p_class_infos = static_cast<std::vector<ClassInfo* >*>(clientData);
-        if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
-            ClassInfo* p_class_info = new ClassInfo;
-            p_class_infos->push_back(p_class_info);
-            ClassParser::parse(cursor, parent, p_class_info);
-        } 
-     }
 };
