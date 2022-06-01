@@ -4,10 +4,15 @@
 #ifdef __APPLE__
 #include <libgen.h>
 #endif
-#include <clang-c/Index.h>
 
+#include <clang-c/Index.h>
 #include <cstdint>
 #include <variant>
+
+#include <map>
+#include <memory>
+#include <cstring>
+
 
 class Utils
 {
@@ -73,7 +78,7 @@ public:
 #else
     static char* baseName(const char* path)
     {
-        return basename(const_cast<char*>(path));
+        return (const_cast<char*>(path));
     }
 #endif
 
@@ -176,7 +181,7 @@ public:
                 else if (dataLength <= sizeof(int)) {
                     output = clang_EvalResult_isUnsignedInt(res);
                 } else {
-                    output = clang_EvalResult_getAsUnsigned(res);
+                    output = static_cast<uint64_t>(clang_EvalResult_getAsUnsigned(res));
                 }
                 break;
             }
@@ -216,5 +221,46 @@ public:
                 return false;
         }
         return false;
+    }
+
+    static void makeCommandLineOptsMap(int argc, char** argv, std::map<std::string, std::string>& map_opts)
+    {
+        for (int index = 0; index < argc; index++) {
+            char* param = argv[index];
+            if (nullptr != param) {
+                std::string key;
+                std::string value;
+                char* delimiter = strchr(param, '=');
+                if (nullptr != delimiter) {
+                    size_t size = strlen(param);
+                    char* value_ptr = delimiter + 1;
+                    *delimiter = 0;
+                    key = param;
+                    if (value_ptr - param < size) {
+                        value = value_ptr;
+                    }
+                } else {
+                    key = std::string(param);
+                }
+                map_opts.insert(std::make_pair(key, value));
+            }
+        }
+    }
+
+    static void readFileAllContents(const char* path, std::string& content)
+    {
+        if (nullptr == path)
+            return;
+        FILE* p_file = fopen(path, "r");
+        if (nullptr != p_file) {
+            fseek(p_file, 0, SEEK_END);
+            size_t size = ftell(p_file);
+            fseek(p_file, 0, SEEK_SET);
+            if (0 != size) {
+                content.resize(size);
+                fread((void*)content.data(), 1, size, p_file);
+            }
+            fclose(p_file);
+        }
     }
 };
