@@ -4,6 +4,9 @@
 #ifdef __APPLE__
 #include <libgen.h>
 #endif
+#if defined(linux) || defined(__linux) || defined(__linux__)
+#include <memory>
+#endif
 
 #include <clang-c/Index.h>
 #include <cstdint>
