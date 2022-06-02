@@ -43,8 +43,8 @@ std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::s
                 break;
             }
 
-            for (Json::iterator iter = json_configurations.begin(); json_configurations.end() != iter; iter++) {
-                arguments.push_back(*iter);
+            for (auto& json_configuration : json_configurations) {
+                arguments.push_back(json_configuration);
             }
 
         } while (false);
@@ -53,11 +53,11 @@ std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::s
     return arguments;
 }
 
-struct House4Gril
+struct House4Girls
 {
     std::map<std::string, ClassInfo*> runtime_relations_cache;
     std::set<ClassInfo*> girls;
-    ~House4Gril()
+    ~House4Girls()
     {
         runtime_relations_cache.clear();
         for (const auto& girl : girls) {
@@ -75,7 +75,7 @@ static CXClientData findTheRightClassInfoObject(CXCursor cursor, CXCursor parent
     CXClientData client_data = nullptr;
     const CXCursorKind kind = clang_getCursorKind(cursor);
 
-    auto* house = static_cast<House4Gril*>(p_data);
+    auto* house = static_cast<House4Girls*>(p_data);
     std::string parent_type = Utils::getCursorTypeString(parent);
     std::string parent_usr = Utils::getCursorUSRString(parent);
     std::string parent_key = parent_type + parent_usr;
@@ -115,12 +115,11 @@ int clangJsonRenderMain(int argc, char** argv)
     }
 
     std::vector<std::string> vec_arguments = parseClangRuntimeArguments(map_cmd_opts);
-    const char* defaultArguments[vec_arguments.size()];
-    int args_index = 0;
-    for (const auto& item : vec_arguments) {
-        defaultArguments[args_index] = item.c_str();
-        ++args_index;
-    }
+ 
+    std::vector<char*> defaultArguments {};
+    defaultArguments.reserve(vec_arguments.size());
+
+    for (auto& s : vec_arguments) defaultArguments.push_back(&s[0]);
 
     const auto* const resolvedPath = iter_file->second.c_str();
     std::cerr << "Parsing " << resolvedPath << "...\n";
@@ -128,7 +127,7 @@ int clangJsonRenderMain(int argc, char** argv)
     const CXIndex index = clang_createIndex(0, 1);
     const CXTranslationUnit translation_unit = clang_parseTranslationUnit(index,
                                                                           resolvedPath,
-                                                                          defaultArguments,
+                                                                          defaultArguments.data(),
                                                                           static_cast<int>(vec_arguments.size()),
                                                                           nullptr,
                                                                           0,
@@ -136,7 +135,7 @@ int clangJsonRenderMain(int argc, char** argv)
 
     const std::shared_ptr<ClassInfo> classInfo = std::make_shared<ClassInfo>();
     const CXCursor rootCursor = clang_getTranslationUnitCursor(translation_unit);
-    House4Gril house;
+    House4Girls house;
     HeaderParserClientData client_data;
     client_data.p_func = findTheRightClassInfoObject;
     client_data.p_data = &house;

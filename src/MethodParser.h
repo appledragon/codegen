@@ -1,7 +1,6 @@
 #pragma once
 #include <clang-c/Index.h>
 
-#include <iostream>
 #include <string>
 
 #include "ClassInfo.h"
@@ -33,9 +32,9 @@ public:
             method->methodReturnInfo.underlyingType = Utils::getCursorUnderlyingTypeString(returnCursor);
         }
 
-        method->isConst = (clang_CXXMethod_isConst(cursor) != 0U);
-        method->isVirtual = (clang_CXXMethod_isVirtual(cursor) != 0U);
-        method->isStatic = (clang_CXXMethod_isStatic(cursor) != 0U);
+        method->isConst = clang_CXXMethod_isConst(cursor) != 0U;
+        method->isVirtual = clang_CXXMethod_isVirtual(cursor) != 0U;
+        method->isStatic = clang_CXXMethod_isStatic(cursor) != 0U;
 
         const CXCursorVisitor visitor =
             [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
@@ -68,7 +67,7 @@ public:
                     auto *const argInfo = static_cast<ArgInfo *>(client_data);
                     const CXCursorKind childKind = clang_getCursorKind(cursor);
                     if (childKind == CXCursor_TypeRef || childKind == CXCursor_TemplateRef) {
-                        auto referenced = clang_getCursorReferenced(cursor);
+                        const auto referenced = clang_getCursorReferenced(cursor);
                         argInfo->rawType = Utils::getCursorTypeString(referenced);
                         auto s2 =
                             Utils::CXStringToStdString(clang_getCursorSpelling(clang_getCursorSemanticParent(parent)));

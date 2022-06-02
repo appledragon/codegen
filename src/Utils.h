@@ -10,7 +10,6 @@
 #include <variant>
 
 #include <map>
-#include <memory>
 #include <cstring>
 
 
@@ -167,10 +166,10 @@ public:
 
     static void EvaluateDefaultValue(const CXCursor& cursor, DefaultValueType& output)
     {
-        CXType ctype = clang_getCursorType(cursor);
+        const CXType ctype = clang_getCursorType(cursor);
 
-        CXEvalResult res = clang_Cursor_Evaluate(cursor);
-        CXEvalResultKind kind = clang_EvalResult_getKind(res);
+        const CXEvalResult res = clang_Cursor_Evaluate(cursor);
+        const CXEvalResultKind kind = clang_EvalResult_getKind(res);
         switch (kind) {
             case CXEval_Int: {
                 const auto dataLength = clang_Type_getSizeOf(ctype);
@@ -232,7 +231,7 @@ public:
                 std::string value;
                 char* delimiter = strchr(param, '=');
                 if (nullptr != delimiter) {
-                    size_t size = strlen(param);
+                    const size_t size = strlen(param);
                     char* value_ptr = delimiter + 1;
                     *delimiter = 0;
                     key = param;
@@ -242,7 +241,7 @@ public:
                 } else {
                     key = std::string(param);
                 }
-                map_opts.insert(std::make_pair(key, value));
+                map_opts.emplace(std::make_pair(key, value));
             }
         }
     }
@@ -254,7 +253,7 @@ public:
         FILE* p_file = fopen(path, "r");
         if (nullptr != p_file) {
             fseek(p_file, 0, SEEK_END);
-            size_t size = ftell(p_file);
+            const size_t size = ftell(p_file);
             fseek(p_file, 0, SEEK_SET);
             if (0 != size) {
                 content.resize(size);
