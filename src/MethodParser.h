@@ -48,11 +48,12 @@ public:
                 if (isBuiltinType) {
                     arg->name = Utils::getCursorNameString(cursor);
                     arg->type = Utils::getCursorTypeString(cursor);
-                    methodInfo->methodArgs.emplace_back(*arg);
+                    //methodInfo->methodArgs.emplace_back(*arg);
                     // return CXChildVisit_Continue;
                 }
 
-                if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference || type.kind == CXType_Pointer) {
+                if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference 
+                    || type.kind == CXType_Pointer || type.kind == CXType_Elaborated) {
                     CXType pointee = clang_getPointeeType(type);
 
                     // arg->argName = Utils::getCursorNameString(referenced);
