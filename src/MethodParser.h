@@ -52,7 +52,7 @@ public:
                     // return CXChildVisit_Continue;
                 }
 
-                if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference) {
+                if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference || type.kind == CXType_Pointer) {
                     CXType pointee = clang_getPointeeType(type);
 
                     // arg->argName = Utils::getCursorNameString(referenced);
@@ -80,6 +80,21 @@ public:
                     Utils::DefaultValueType defaultValue;
                     if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
                        argInfo->defaultValue = defaultValue;
+                    } else if (childKind >= CXCursor_FirstExpr &&
+                                   childKind <= CXCursor_LastExpr) {
+                        const CXCursorVisitor visitor =
+                            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+                            auto *const argInfo = static_cast<ArgInfo *>(client_data);
+                            const CXCursorKind childKind = clang_getCursorKind(cursor);
+                            Utils::DefaultValueType defaultValue;
+                            if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
+                                argInfo->defaultValue = defaultValue;
+                            } 
+
+                            return CXChildVisit_Continue;
+                        };
+                        clang_visitChildren(cursor, visitor, argInfo);
+
                     }
 
                     return CXChildVisit_Continue;

@@ -19,7 +19,7 @@
 class Utils
 {
 public:
-    using DefaultValueType = std::variant<bool, int, uint64_t, uint32_t, double, float, char, std::string>;
+    using DefaultValueType = std::variant<bool, int, uint64_t, uint32_t, double, float, char, char*,std::string>;
     static std::string CXStringToStdString(const CXString& text)
     {
         std::string result;
@@ -170,12 +170,21 @@ public:
     static void EvaluateDefaultValue(const CXCursor& cursor, DefaultValueType& output)
     {
         const CXType ctype = clang_getCursorType(cursor);
+        // virtual void setchar(const char* name = "xxxxxxxxx") = 0;
+        if (ctype.kind == CXType_ConstantArray) {
+            const auto dataType = clang_getElementType(ctype);
+            if (dataType.kind == CXType_Char_S) {
+                // TODO
+            }
+            return;
+        }
+
+        const auto dataLength = clang_Type_getSizeOf(ctype);
 
         const CXEvalResult res = clang_Cursor_Evaluate(cursor);
         const CXEvalResultKind kind = clang_EvalResult_getKind(res);
         switch (kind) {
             case CXEval_Int: {
-                const auto dataLength = clang_Type_getSizeOf(ctype);
                 if (dataLength == 1) {
                     // bool
                     clang_EvalResult_getAsInt(res) == 0 ? output = false : output = true;
@@ -183,7 +192,7 @@ public:
                 else if (dataLength <= sizeof(int)) {
                     output = clang_EvalResult_isUnsignedInt(res);
                 } else {
-                    output = static_cast<uint64_t>(clang_EvalResult_getAsUnsigned(res));
+                    output = clang_EvalResult_getAsUnsigned(res);
                 }
                 break;
             }
