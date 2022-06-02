@@ -231,7 +231,7 @@ public:
                     }
                 }
                 else if (dataLength <= sizeof(int)) {
-                    output = clang_EvalResult_isUnsignedInt(res);
+                    output = clang_EvalResult_getAsInt(res);
                 } else {
                     output = clang_EvalResult_getAsUnsigned(res);
                 }
