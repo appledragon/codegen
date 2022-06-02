@@ -22,12 +22,15 @@ public:
         if (Utils::isBuiltinType(returnType)) {
             method->methodReturnInfo.type = Utils::getCursorTypeString(returnType);
             method->methodReturnInfo.isBuiltinType = true;
+            method->methodReturnInfo.isInSystemHeader = true;
         } else {
             const auto returnCursor = clang_getTypeDeclaration(clang_getResultType(type));
             // return has no name
             //method->methodReturnInfo.name = Utils::getCursorNameString(returnCursor);
             method->methodReturnInfo.type = Utils::getCursorTypeString(returnCursor);
             const auto location = Utils::getCursorSourceLocation(returnCursor);
+            method->methodReturnInfo.isInSystemHeader = Utils::isInSystemHeader(returnCursor);
+
             method->methodReturnInfo.sourceLocation = location.first;
             method->methodReturnInfo.sourceLocationFullPath = location.second;
             method->methodReturnInfo.underlyingType = Utils::getCursorUnderlyingTypeString(returnCursor);
@@ -46,6 +49,8 @@ public:
                 const auto type = clang_getCursorType(cursor);
                 const auto isBuiltinType = Utils::isBuiltinType(type);
                 arg->isBuiltinType = isBuiltinType;
+                arg->isInSystemHeader = Utils::isInSystemHeader(cursor);
+
                // if (isBuiltinType) {
                     arg->name = Utils::getCursorNameString(cursor);
                     arg->type = Utils::getCursorTypeString(cursor);

@@ -14,6 +14,7 @@ public:
     std::string sourceLocation;          // header file name;
     std::string sourceLocationFullPath;  // header file full path in disk
     Utils::DefaultValueType defaultValue;
+    bool isInSystemHeader{false};
     bool isConst{false};
     bool isReference{false};
     bool isBuiltinType{false};

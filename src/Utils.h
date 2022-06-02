@@ -46,6 +46,12 @@ public:
         return result;
     }
 
+    static bool isInSystemHeader(const CXCursor& cursor)
+    {
+        const auto location = clang_getCursorLocation(cursor);
+        return clang_Location_isInSystemHeader(location) > 0;
+    }
+
 #ifdef _MSC_VER
     static char* baseName(const char* path)
     {
