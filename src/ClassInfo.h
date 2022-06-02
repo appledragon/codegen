@@ -20,6 +20,12 @@ public:
     bool isBuiltinType{false};
 };
 
+class FiledInfo : public ArgInfo
+{
+public:
+    bool isPublic{false};
+};
+
 using ReturnInfo = ArgInfo;
 
 class MethodInfo
@@ -43,5 +49,6 @@ public:
     std::string sourceLocationFullPath;  // header file full path in disk
     std::vector<MethodInfo> methodList{};
     std::vector<ClassInfo> baseClass{};
+    std::vector<FiledInfo> members{};
     bool isTemplateClass{false};
 };

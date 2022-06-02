@@ -19,7 +19,7 @@ constexpr const char* OUT_FILE_KEY = "-output";
 std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::string>& map_opts)
 {
     std::vector<std::string> arguments;
-    auto iter = map_opts.find(CONFIG_FILE_KEY);
+    const auto iter = map_opts.find(CONFIG_FILE_KEY);
     if (map_opts.end() != iter) {
         std::string config_content;
         Utils::readFileAllContents(iter->second.c_str(), config_content);
@@ -89,7 +89,8 @@ static CXClientData findTheRightClassInfoObject(CXCursor cursor, CXCursor parent
         }
 
         client_data = iter->second;
-    } else if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
+    } else if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl) && !Utils::isForwardDeclaration(cursor))
+        {
         std::string type = Utils::getCursorTypeString(cursor);
         std::string usr = Utils::getCursorUSRString(cursor);
         std::string key = type + usr;

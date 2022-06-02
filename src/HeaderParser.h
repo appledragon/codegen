@@ -34,13 +34,13 @@ public:
 
         CXClientData clang_index_client_data = header_parser_client_data->p_func(cursor, parent, header_parser_client_data->p_data);
         if (nullptr == clang_index_client_data)
-            return CXChildVisit_Continue;
+            return CXChildVisit_Recurse;
 
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
         
-        if (kind == CXCursor_ClassDecl && !Utils::isForwardDeclaration(cursor)) {
+        if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl) && !Utils::isForwardDeclaration(cursor)) {
             ClassParser::parse(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_EnumDecl && !Utils::isForwardDeclaration(cursor)) {
             EnumParser::parse(cursor, parent, clang_index_client_data);

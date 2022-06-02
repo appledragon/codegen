@@ -31,7 +31,21 @@ public:
             const CXCursorKind childKind = clang_getCursorKind(cursor);
 
             auto *const classInfo = static_cast<ClassInfo *>(client_data);
-
+            if (childKind == CXCursor_FieldDecl) {
+                FiledInfo field{};
+                // TODO the same code, unify it
+                const auto type = clang_getCursorType(cursor);
+                const auto isBuiltinType = Utils::isBuiltinType(type);
+                field.isBuiltinType = isBuiltinType;
+                field.isInSystemHeader = Utils::isInSystemHeader(cursor);
+                field.name = Utils::getCursorNameString(cursor);
+                field.type = Utils::getCursorTypeString(cursor);
+                const auto location = Utils::getCursorSourceLocation(cursor);
+                field.sourceLocation = location.first;
+                field.sourceLocationFullPath = location.second;
+                field.underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
+                classInfo->members.emplace_back(field);
+            } else
             if (childKind == CXCursor_CXXBaseSpecifier) {
                 const auto baseClass = std::make_shared<ClassInfo>();
                 const auto location = Utils::getCursorSourceLocation(cursor);
