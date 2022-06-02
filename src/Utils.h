@@ -167,6 +167,39 @@ public:
         return getCursorUSRString(clang_getTypeDeclaration(type));
     }
 
+    static std::string getCursorText(CXCursor cur)
+    {
+        CXSourceRange range = clang_getCursorExtent(cur);
+        CXSourceLocation begin = clang_getRangeStart(range);
+        CXSourceLocation end = clang_getRangeEnd(range);
+        CXFile cxFile;
+        unsigned int beginOff;
+        unsigned int endOff;
+        clang_getExpansionLocation(begin, &cxFile, 0, 0, &beginOff);
+        clang_getExpansionLocation(end, 0, 0, 0, &endOff);
+        CXString filename = clang_getFileName(cxFile);
+        unsigned int textSize = endOff - beginOff;
+
+        FILE* file = fopen(CXStringToStdString(filename).c_str(), "r");
+        if (file == 0) {
+            return {};
+        }
+        fseek(file, beginOff, SEEK_SET);
+        char buff[4096];
+        char* pBuff = buff;
+        if (textSize + 1 > sizeof(buff)) {
+            pBuff = new char[textSize + 1];
+        }
+        pBuff[textSize] = '\0';
+        fread(pBuff, 1, textSize, file);
+        std::string res(pBuff);
+        if (pBuff != buff) {
+            delete[] pBuff;
+        }
+        fclose(file);
+        return res;
+    }
+
     static void EvaluateDefaultValue(const CXCursor& cursor, DefaultValueType& output)
     {
         const CXType ctype = clang_getCursorType(cursor);
@@ -174,7 +207,9 @@ public:
         if (ctype.kind == CXType_ConstantArray) {
             const auto dataType = clang_getElementType(ctype);
             if (dataType.kind == CXType_Char_S) {
-                // TODO
+                // TODO need change, ugly way to read file.
+                const auto value = getCursorText(cursor);
+                output = const_cast<char*>(value.c_str());
             }
             return;
         }
@@ -186,8 +221,14 @@ public:
         switch (kind) {
             case CXEval_Int: {
                 if (dataLength == 1) {
-                    // bool
-                    clang_EvalResult_getAsInt(res) == 0 ? output = false : output = true;
+                    if (ctype.kind == CXType_Char_S) {
+                        // char
+                        const auto ret = clang_EvalResult_getAsInt(res);
+                        output = static_cast<char>(ret);
+                    } else {
+                        // bool
+                        clang_EvalResult_getAsInt(res) == 0 ? output = false : output = true; 
+                    }
                 }
                 else if (dataLength <= sizeof(int)) {
                     output = clang_EvalResult_isUnsignedInt(res);
