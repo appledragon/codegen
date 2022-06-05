@@ -47,31 +47,37 @@ public:
                 classInfo->members.emplace_back(field);
             } else
             if (childKind == CXCursor_CXXBaseSpecifier) {
-                const auto baseClass = std::make_shared<ClassInfo>();
-                const auto location = Utils::getCursorSourceLocation(cursor);
-
-                baseClass->className = Utils::getCursorSpelling(cursor);
-                baseClass->sourceLocation = location.first;
-                baseClass->sourceLocationFullPath = location.second;
-
-                const CXCursorVisitor visitor =
-                    [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
-                    auto *const bassClassInfo = static_cast<ClassInfo *>(client_data);
-                    const CXCursorKind childKind = clang_getCursorKind(cursor);
-                    if (childKind == CXCursor_TemplateRef) {
-                        bassClassInfo->isTemplateClass = true;
-                    } else if (childKind == CXCursor_NamespaceRef) {
-                        bassClassInfo->classNameSpace = Utils::getCursorSpelling(cursor);
-                    }
-                    return CXChildVisit_Continue;
-                };
-                clang_visitChildren(cursor, visitor, baseClass.get());
-                classInfo->baseClass.emplace_back(*baseClass);
+                return VisitBaseClasses(cursor, classInfo);
             }
             return CXChildVisit_Continue;
         };
 
         clang_visitChildren(cursor, visitor, classInfo);
+        return CXChildVisit_Continue;
+    }
+
+    static CXChildVisitResult VisitBaseClasses(CXCursor cursor, ClassInfo *classInfo)
+    {
+        const auto baseClass = std::make_shared<ClassInfo>();
+        const auto location = Utils::getCursorSourceLocation(cursor);
+
+        baseClass->className = Utils::getCursorSpelling(cursor);
+        baseClass->sourceLocation = location.first;
+        baseClass->sourceLocationFullPath = location.second;
+
+        const CXCursorVisitor visitor =
+            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+            auto *const bassClassInfo = static_cast<ClassInfo *>(client_data);
+            const CXCursorKind childKind = clang_getCursorKind(cursor);
+            if (childKind == CXCursor_TemplateRef) {
+                bassClassInfo->isTemplateClass = true;
+            } else if (childKind == CXCursor_NamespaceRef) {
+                bassClassInfo->classNameSpace = Utils::getCursorSpelling(cursor);
+            }
+            return CXChildVisit_Continue;
+        };
+        clang_visitChildren(cursor, visitor, baseClass.get());
+        classInfo->baseClass.emplace_back(*baseClass);
         return CXChildVisit_Continue;
     }
 };

@@ -3,14 +3,19 @@
 #include <vector>
 #include "Utils.h"
 
-class ArgInfo
+enum class AccessSpecifiers
+{
+    PUBLIC,
+    PRIVATE,
+    PROTECTED
+};
+
+class ReturnInfo
 {
 public:
     std::string type;
     std::string rawType;  // remove cv,reference
     std::string underlyingType;
-    std::string name;
-    std::string fullName;
     std::string sourceLocation;          // header file name;
     std::string sourceLocationFullPath;  // header file full path in disk
     Utils::DefaultValueType defaultValue;
@@ -20,13 +25,18 @@ public:
     bool isBuiltinType{false};
 };
 
+class ArgInfo : public ReturnInfo
+{
+public:
+    std::string name;
+    std::string fullName;
+};
+
 class FiledInfo : public ArgInfo
 {
 public:
-    bool isPublic{false};
+    AccessSpecifiers acessSpecifier {AccessSpecifiers::PUBLIC};
 };
-
-using ReturnInfo = ArgInfo;
 
 class MethodInfo
 {
