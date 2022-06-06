@@ -63,8 +63,6 @@ public:
                         argInfo->name = Utils::getCursorNameString(referenced);
                     }
                     argInfo->rawType = Utils::getCursorTypeString(referenced);
-
-                    argInfo->rawType = Utils::getCursorTypeString(referenced);
                     auto s2 =
                         Utils::CXStringToStdString(clang_getCursorSpelling(clang_getCursorSemanticParent(parent)));
                     const auto location = Utils::getCursorSourceLocation(cursor);

@@ -3,9 +3,7 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
 
-#include "ClassInfo.h"
 #include "ClassParser.h"
 #include "EnumParser.h"
 #include "MethodParser.h"
@@ -40,7 +38,8 @@ public:
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
         
-        if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl) && !Utils::isForwardDeclaration(cursor)) {
+        if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
+            !Utils::isForwardDeclaration(cursor)) {
             ClassParser::parse(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_EnumDecl && !Utils::isForwardDeclaration(cursor)) {
             EnumParser::parse(cursor, parent, clang_index_client_data);

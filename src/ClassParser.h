@@ -1,7 +1,6 @@
 #pragma once
 #include <clang-c/Index.h>
 
-#include <iostream>
 #include <string>
 
 #include "ClassInfo.h"

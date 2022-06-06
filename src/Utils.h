@@ -278,7 +278,6 @@ public:
             default:
                 return false;
         }
-        return false;
     }
 
     static void makeCommandLineOptsMap(int argc, char** argv, std::map<std::string, std::string>& map_opts)

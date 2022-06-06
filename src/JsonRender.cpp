@@ -89,7 +89,8 @@ static CXClientData findTheRightClassInfoObject(CXCursor cursor, CXCursor parent
         }
 
         client_data = iter->second;
-    } else if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl) && !Utils::isForwardDeclaration(cursor))
+    } else if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
+               !Utils::isForwardDeclaration(cursor))
         {
         std::string type = Utils::getCursorTypeString(cursor);
         std::string usr = Utils::getCursorUSRString(cursor);
