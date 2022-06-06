@@ -37,7 +37,7 @@ public:
                 VisitClassFields(cursor, classInfo);
 
             } else if (childKind == CXCursor_CXXBaseSpecifier) {
-                return VisitBaseClasses(cursor, classInfo);
+                VisitBaseClasses(cursor, classInfo);
             }
             return CXChildVisit_Continue;
         };
@@ -80,7 +80,7 @@ public:
         classInfo->members.emplace_back(field);
     }
 
-    static CXChildVisitResult VisitBaseClasses(CXCursor cursor, ClassInfo *classInfo)
+    static void VisitBaseClasses(CXCursor cursor, ClassInfo *classInfo)
     {
         const auto baseClass = std::make_shared<ClassInfo>();
         const auto location = Utils::getCursorSourceLocation(cursor);
@@ -102,6 +102,6 @@ public:
         };
         clang_visitChildren(cursor, visitor, baseClass.get());
         classInfo->baseClass.emplace_back(*baseClass);
-        return CXChildVisit_Continue;
+        return;
     }
 };
