@@ -32,21 +32,9 @@ public:
 
             auto *const classInfo = static_cast<ClassInfo *>(client_data);
             if (childKind == CXCursor_FieldDecl) {
-                FiledInfo field{};
-                // TODO the same code, unify it
-                const auto type = clang_getCursorType(cursor);
-                const auto isBuiltinType = Utils::isBuiltinType(type);
-                field.isBuiltinType = isBuiltinType;
-                field.isInSystemHeader = Utils::isInSystemHeader(cursor);
-                field.name = Utils::getCursorNameString(cursor);
-                field.type = Utils::getCursorTypeString(cursor);
-                const auto location = Utils::getCursorSourceLocation(cursor);
-                field.sourceLocation = location.first;
-                field.sourceLocationFullPath = location.second;
-                field.underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
-                classInfo->members.emplace_back(field);
-            } else
-            if (childKind == CXCursor_CXXBaseSpecifier) {
+                VisitClassFields(cursor, classInfo);
+
+            } else if (childKind == CXCursor_CXXBaseSpecifier) {
                 return VisitBaseClasses(cursor, classInfo);
             }
             return CXChildVisit_Continue;
@@ -54,6 +42,23 @@ public:
 
         clang_visitChildren(cursor, visitor, classInfo);
         return CXChildVisit_Continue;
+    }
+
+    static void VisitClassFields(CXCursor cursor, ClassInfo *classInfo)
+    {
+        FiledInfo field{};
+        // TODO the same code, unify it
+        const auto type = clang_getCursorType(cursor);
+        const auto isBuiltinType = Utils::isBuiltinType(type);
+        field.isBuiltinType = isBuiltinType;
+        field.isInSystemHeader = Utils::isInSystemHeader(cursor);
+        field.name = Utils::getCursorNameString(cursor);
+        field.type = Utils::getCursorTypeString(cursor);
+        const auto location = Utils::getCursorSourceLocation(cursor);
+        field.sourceLocation = location.first;
+        field.sourceLocationFullPath = location.second;
+        field.underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
+        classInfo->members.emplace_back(field);
     }
 
     static CXChildVisitResult VisitBaseClasses(CXCursor cursor, ClassInfo *classInfo)

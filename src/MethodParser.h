@@ -18,23 +18,8 @@ public:
 
         const auto method = std::make_shared<MethodInfo>();
         method->methodName = Utils::getCursorNameString(cursor);
-        const auto returnType = clang_getResultType(type);
-        if (Utils::isBuiltinType(returnType)) {
-            method->methodReturnInfo.type = Utils::getCursorTypeString(returnType);
-            method->methodReturnInfo.isBuiltinType = true;
-            method->methodReturnInfo.isInSystemHeader = true;
-        } else {
-            const auto returnCursor = clang_getTypeDeclaration(clang_getResultType(type));
-            // return has no name
-            //method->methodReturnInfo.name = Utils::getCursorNameString(returnCursor);
-            method->methodReturnInfo.type = Utils::getCursorTypeString(returnCursor);
-            const auto location = Utils::getCursorSourceLocation(returnCursor);
-            method->methodReturnInfo.isInSystemHeader = Utils::isInSystemHeader(returnCursor);
 
-            method->methodReturnInfo.sourceLocation = location.first;
-            method->methodReturnInfo.sourceLocationFullPath = location.second;
-            method->methodReturnInfo.underlyingType = Utils::getCursorUnderlyingTypeString(returnCursor);
-        }
+        VisitReturnInfo(type, *method);
 
         method->isConst = clang_CXXMethod_isConst(cursor) != 0U;
         method->isVirtual = clang_CXXMethod_isVirtual(cursor) != 0U;
@@ -42,88 +27,111 @@ public:
 
         const CXCursorVisitor visitor =
             [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
-            auto *const methodInfo = static_cast<MethodInfo *>(client_data);
-            const CXCursorKind childKind = clang_getCursorKind(cursor);
-            if (childKind == CXCursor_ParmDecl) {
-                const auto arg = std::make_shared<ArgInfo>();
-                const auto type = clang_getCursorType(cursor);
-                const auto isBuiltinType = Utils::isBuiltinType(type);
-                arg->isBuiltinType = isBuiltinType;
-                arg->isInSystemHeader = Utils::isInSystemHeader(cursor);
-
-               // if (isBuiltinType) {
-                    arg->name = Utils::getCursorNameString(cursor);
-                    arg->type = Utils::getCursorTypeString(cursor);
-                    //methodInfo->methodArgs.emplace_back(*arg);
-                    // return CXChildVisit_Continue;
-               // }
-
-                if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference 
-                    || type.kind == CXType_Pointer || type.kind == CXType_Elaborated) {
-                    CXType pointee = clang_getPointeeType(type);
-
-                    // arg->argName = Utils::getCursorNameString(referenced);
-                    arg->name = Utils::getCursorNameString(cursor);
-                    arg->type = Utils::getCursorTypeString(cursor);
-                    //  methodInfo->methodArgs.emplace_back(*arg);
-                    // return CXChildVisit_Continue;
-                }
-
-                const CXCursorVisitor visitor =
-                    [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
-                    auto *const argInfo = static_cast<ArgInfo *>(client_data);
-                    const CXCursorKind childKind = clang_getCursorKind(cursor);
-                    if (childKind == CXCursor_TypeRef || childKind == CXCursor_TemplateRef) {
-                        const auto referenced = clang_getCursorReferenced(cursor);
-                        if (argInfo->type.empty()) {
-                            argInfo->type = Utils::getCursorTypeString(cursor);
-                        }
-                        if (argInfo->name.empty()) {
-                            argInfo->name = Utils::getCursorNameString(referenced);
-                        }
-                        argInfo->rawType = Utils::getCursorTypeString(referenced);
-
-                        argInfo->rawType = Utils::getCursorTypeString(referenced);
-                        auto s2 =
-                            Utils::CXStringToStdString(clang_getCursorSpelling(clang_getCursorSemanticParent(parent)));
-                        const auto location = Utils::getCursorSourceLocation(cursor);
-                        argInfo->sourceLocation = location.first;
-                        argInfo->sourceLocationFullPath = location.second;
-                        argInfo->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
-                        // return CXChildVisit_Break;
-                    }
-                    Utils::DefaultValueType defaultValue;
-                    if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
-                       argInfo->defaultValue = defaultValue;
-                    } else if (childKind >= CXCursor_FirstExpr &&
-                                   childKind <= CXCursor_LastExpr) {
-                        const CXCursorVisitor visitor =
-                            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
-                            auto *const argInfo = static_cast<ArgInfo *>(client_data);
-                            const CXCursorKind childKind = clang_getCursorKind(cursor);
-                            Utils::DefaultValueType defaultValue;
-                            if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
-                                argInfo->defaultValue = defaultValue;
-                            } 
-
-                            return CXChildVisit_Continue;
-                        };
-                        clang_visitChildren(cursor, visitor, argInfo);
-
-                    }
-
-                    return CXChildVisit_Continue;
-                };
-                clang_visitChildren(cursor, visitor, arg.get());
-                methodInfo->methodArgs.emplace_back(*arg);
-            }
-
-            return CXChildVisit_Continue;
+            return VisitMethodArgs(client_data, cursor);
         };
 
         clang_visitChildren(cursor, visitor, method.get());
         classInfo->methodList.emplace_back(*method);
 
         return CXChildVisit_Continue;
+    }
+
+    static CXChildVisitResult VisitMethodArgs(CXClientData client_data, CXCursor cursor)
+    {
+        auto *const methodInfo = static_cast<MethodInfo *>(client_data);
+        const CXCursorKind childKind = clang_getCursorKind(cursor);
+        if (childKind == CXCursor_ParmDecl) {
+            const auto arg = std::make_shared<ArgInfo>();
+            const auto type = clang_getCursorType(cursor);
+            const auto isBuiltinType = Utils::isBuiltinType(type);
+            arg->isBuiltinType = isBuiltinType;
+            arg->isInSystemHeader = Utils::isInSystemHeader(cursor);
+
+            arg->name = Utils::getCursorNameString(cursor);
+            arg->type = Utils::getCursorTypeString(cursor);
+
+
+            if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference ||
+                type.kind == CXType_Pointer || type.kind == CXType_Elaborated) {
+                CXType pointee = clang_getPointeeType(type);
+                arg->name = Utils::getCursorNameString(cursor);
+                arg->type = Utils::getCursorTypeString(cursor);
+            }
+
+            const CXCursorVisitor visitor =
+                [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+                auto *const argInfo = static_cast<ArgInfo *>(client_data);
+                const CXCursorKind childKind = clang_getCursorKind(cursor);
+                if (childKind == CXCursor_TypeRef || childKind == CXCursor_TemplateRef) {
+                    const auto referenced = clang_getCursorReferenced(cursor);
+                    if (argInfo->type.empty()) {
+                        argInfo->type = Utils::getCursorTypeString(cursor);
+                    }
+                    if (argInfo->name.empty()) {
+                        argInfo->name = Utils::getCursorNameString(referenced);
+                    }
+                    argInfo->rawType = Utils::getCursorTypeString(referenced);
+
+                    argInfo->rawType = Utils::getCursorTypeString(referenced);
+                    auto s2 =
+                        Utils::CXStringToStdString(clang_getCursorSpelling(clang_getCursorSemanticParent(parent)));
+                    const auto location = Utils::getCursorSourceLocation(cursor);
+                    argInfo->sourceLocation = location.first;
+                    argInfo->sourceLocationFullPath = location.second;
+                    argInfo->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
+                    // return CXChildVisit_Break;
+                }
+                return VisitArgDefaultValue(childKind, cursor, argInfo);
+
+
+            };
+            clang_visitChildren(cursor, visitor, arg.get());
+            methodInfo->methodArgs.emplace_back(*arg);
+        }
+
+        return CXChildVisit_Continue;
+    }
+
+    static CXChildVisitResult VisitArgDefaultValue(const CXCursorKind childKind, CXCursor cursor, ArgInfo *argInfo)
+    {
+        Utils::DefaultValueType defaultValue;
+        if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
+            argInfo->defaultValue = defaultValue;
+        } else if (childKind >= CXCursor_FirstExpr && childKind <= CXCursor_LastExpr) {
+            const CXCursorVisitor visitor =
+                [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+                auto *const argInfo = static_cast<ArgInfo *>(client_data);
+                const CXCursorKind childKind = clang_getCursorKind(cursor);
+                Utils::DefaultValueType defaultValue;
+                if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
+                    argInfo->defaultValue = defaultValue;
+                }
+
+                return CXChildVisit_Continue;
+            };
+            clang_visitChildren(cursor, visitor, argInfo);
+        }
+        return CXChildVisit_Continue;
+    }
+
+    static void VisitReturnInfo(const CXType type, MethodInfo& method)
+    {
+        const auto returnType = clang_getResultType(type);
+        if (Utils::isBuiltinType(returnType)) {
+            method.methodReturnInfo.type = Utils::getCursorTypeString(returnType);
+            method.methodReturnInfo.isBuiltinType = true;
+            method.methodReturnInfo.isInSystemHeader = true;
+        } else {
+            const auto returnCursor = clang_getTypeDeclaration(clang_getResultType(type));
+            // return has no name
+            // method->methodReturnInfo.name = Utils::getCursorNameString(returnCursor);
+            method.methodReturnInfo.type = Utils::getCursorTypeString(returnCursor);
+            const auto location = Utils::getCursorSourceLocation(returnCursor);
+            method.methodReturnInfo.isInSystemHeader = Utils::isInSystemHeader(returnCursor);
+
+            method.methodReturnInfo.sourceLocation = location.first;
+            method.methodReturnInfo.sourceLocationFullPath = location.second;
+            method.methodReturnInfo.underlyingType = Utils::getCursorUnderlyingTypeString(returnCursor);
+        }
     }
 };
