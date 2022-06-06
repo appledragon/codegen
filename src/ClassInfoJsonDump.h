@@ -33,7 +33,7 @@ public:
             std::filesystem::path tmp = out_put_dir;
             tmp /= unique_file_name;
 
-            ClassInfoJsonDumper::saveToFile(item, tmp.c_str());
+            ClassInfoJsonDumper::saveToFile(item, tmp.string());
         }
     }
 
@@ -89,9 +89,9 @@ private:
         return client_data;
     }
 
-    static void saveToFile(const ClassInfo* info, const char* output_path)
+    static void saveToFile(const ClassInfo* info, const std::string& output_path)
     {
-        if (nullptr == info || nullptr == output_path)
+        if (nullptr == info || output_path.empty())
             return;
 
         jinja2::ValuesMap params{};
@@ -177,12 +177,12 @@ public:
         clang_visitChildren(rootCursor, HeaderParser::Parser, &client_data);
 
         if (!house.file_name.empty()){
-            std::filesystem::path ori_file_path = house.file_name.c_str();
-            std::string deps_file_name = ori_file_path.filename().c_str();
+            std::filesystem::path ori_file_path{house.file_name};
+            std::string deps_file_name = ori_file_path.filename().string();
             deps_file_name.append("_deps.json");
             ori_file_path = out_put_dir;
             ori_file_path /= deps_file_name;
-            ClassDepsJsonDumper::saveToFile(&house, ori_file_path.c_str());
+            ClassDepsJsonDumper::saveToFile(&house, ori_file_path.string());
         }
     }
 
@@ -207,9 +207,9 @@ private:
         return &info;
     }
 
-    static void saveToFile(const House4Deps* deps_info, const char* output_path)
+    static void saveToFile(const House4Deps* deps_info, const std::string& output_path)
     {
-        if (nullptr == deps_info || nullptr == output_path)
+        if (nullptr == deps_info || output_path.empty())
             return;
 
         jinja2::ValuesMap params{};

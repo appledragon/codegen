@@ -175,19 +175,19 @@ public:
 
     static std::string getCursorText(const CXCursor& cur)
     {
-        CXSourceRange range = clang_getCursorExtent(cur);
-        CXSourceLocation begin = clang_getRangeStart(range);
-        CXSourceLocation end = clang_getRangeEnd(range);
+        const CXSourceRange range = clang_getCursorExtent(cur);
+        const CXSourceLocation begin = clang_getRangeStart(range);
+        const CXSourceLocation end = clang_getRangeEnd(range);
         CXFile cxFile;
         unsigned int beginOff;
         unsigned int endOff;
-        clang_getExpansionLocation(begin, &cxFile, 0, 0, &beginOff);
-        clang_getExpansionLocation(end, 0, 0, 0, &endOff);
-        CXString filename = clang_getFileName(cxFile);
-        unsigned int textSize = endOff - beginOff;
+        clang_getExpansionLocation(begin, &cxFile, nullptr, nullptr, &beginOff);
+        clang_getExpansionLocation(end, nullptr, nullptr, nullptr, &endOff);
+        const CXString filename = clang_getFileName(cxFile);
+        const unsigned int textSize = endOff - beginOff;
 
         FILE* file = fopen(CXStringToStdString(filename).c_str(), "r");
-        if (file == 0) {
+        if (file == nullptr) {
             return {};
         }
         fseek(file, beginOff, SEEK_SET);

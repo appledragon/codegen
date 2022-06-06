@@ -30,11 +30,11 @@ public:
         if (nullptr == clientData)
             return CXChildVisit_Break;
 
-        auto* header_parser_client_data = static_cast<HeaderParserClientData* >(clientData);
+        const auto* header_parser_client_data = static_cast<HeaderParserClientData* >(clientData);
         if (nullptr == header_parser_client_data->p_func)
             return CXChildVisit_Break;
 
-        CXClientData clang_index_client_data = header_parser_client_data->p_func(cursor, parent, header_parser_client_data->p_data);
+        const CXClientData clang_index_client_data = header_parser_client_data->p_func(cursor, parent, header_parser_client_data->p_data);
         if (nullptr == clang_index_client_data)
             return CXChildVisit_Recurse;
 

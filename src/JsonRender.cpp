@@ -20,6 +20,7 @@ constexpr const char* CONFIG_FILE_KEY = "-config";
 constexpr const char* IN_FILE_KEY = "-file";
 constexpr const char* OUT_FILE_KEY = "-output";
 constexpr const char* CHECK_DEPS = "-checkdeps";
+
 std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::string>& map_opts)
 {
     std::vector<std::string> arguments;
