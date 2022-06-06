@@ -9,12 +9,14 @@
 #include "MethodParser.h"
 #include "Utils.h"
 
-typedef CXClientData (*fnFindTheRightGirl)(CXCursor cursor, CXCursor parent, void* p_this);
+using fnFindTheRightGirl = std::function<CXClientData(CXCursor, CXCursor, void *)>;
+
 struct HeaderParserClientData
 {
     fnFindTheRightGirl p_func = nullptr;
     void* p_data = nullptr;
 };
+
 class HeaderParser
 {
 public:
@@ -22,7 +24,7 @@ public:
     {
         if (clang_Location_isFromMainFile(clang_getCursorLocation(cursor)) == 0)
             return CXChildVisit_Continue;
-        
+
         if (nullptr == clientData)
             return CXChildVisit_Break;
 
@@ -37,12 +39,12 @@ public:
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
-        
+
         if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
             !Utils::isForwardDeclaration(cursor)) {
-            ClassParser::parse(cursor, parent, clang_index_client_data);
+            ClassParser::VisitClass(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_EnumDecl && !Utils::isForwardDeclaration(cursor)) {
-            EnumParser::parse(cursor, parent, clang_index_client_data);
+            EnumParser::VisitEnum(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_Namespace) {
             CXCursor parentNameSpace = clang_getCursorSemanticParent(cursor);
             while (parentNameSpace.kind == CXCursor_Namespace) {
@@ -52,7 +54,7 @@ public:
         } else if (kind == CXCursor_CXXBaseSpecifier) {
         } else if (kind == CXCursor_FunctionDecl) {
         } else if (kind == CXCursor_CXXMethod) {
-            MethodParser::parse(cursor, parent, clang_index_client_data);
+            MethodParser::VisitClassMethod(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_FunctionTemplate) {
         } else if (kind == CXCursor_ParmDecl) {
             auto typeName = Utils::getCursorTypeString(cursor);

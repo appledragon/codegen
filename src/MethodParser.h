@@ -9,7 +9,7 @@
 class MethodParser
 {
 public:
-    static CXChildVisitResult parse(CXCursor cursor, CXCursor parent, CXClientData clientData)
+    static CXChildVisitResult VisitClassMethod(CXCursor cursor, CXCursor parent, CXClientData clientData)
     {
         auto *const classInfo = static_cast<ClassInfo *>(clientData);
         const CXCursorKind kind = clang_getCursorKind(cursor);

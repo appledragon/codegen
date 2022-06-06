@@ -90,8 +90,7 @@ static CXClientData findTheRightClassInfoObject(CXCursor cursor, CXCursor parent
 
         client_data = iter->second;
     } else if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
-               !Utils::isForwardDeclaration(cursor))
-        {
+               !Utils::isForwardDeclaration(cursor)) {
         std::string type = Utils::getCursorTypeString(cursor);
         std::string usr = Utils::getCursorUSRString(cursor);
         std::string key = type + usr;
@@ -100,7 +99,7 @@ static CXClientData findTheRightClassInfoObject(CXCursor cursor, CXCursor parent
         house->runtime_relations_cache.insert(std::make_pair(key, value));
         client_data = value;
     }
-        
+
     return client_data;
 }
 
@@ -117,11 +116,11 @@ int clangJsonRenderMain(int argc, char** argv)
     }
 
     std::vector<std::string> vec_arguments = parseClangRuntimeArguments(map_cmd_opts);
- 
-    std::vector<char*> defaultArguments {};
+
+    std::vector<char*> defaultArguments{};
     defaultArguments.reserve(vec_arguments.size());
 
-    for (auto& s : vec_arguments) defaultArguments.push_back(&s[0]);
+    for (auto& s : vec_arguments) defaultArguments.push_back(s.data());
 
     const auto* const resolvedPath = iter_file->second.c_str();
     std::cerr << "Parsing " << resolvedPath << "...\n";
