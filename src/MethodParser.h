@@ -113,7 +113,7 @@ public:
     {
         const auto returnType = clang_getResultType(type);
 
-        auto returnCursor = clang_getTypeDeclaration(returnType);
+        const auto returnCursor = clang_getTypeDeclaration(returnType);
 
         if (Utils::isBuiltinType(returnType)) {
             method.methodReturnInfo.type = Utils::getCursorTypeString(returnType);
