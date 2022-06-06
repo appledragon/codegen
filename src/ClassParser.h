@@ -1,6 +1,9 @@
 #pragma once
 #include <clang-c/Index.h>
 
+#include <algorithm>
+#include <iterator>
+#include <vector>
 #include <string>
 
 #include "ClassInfo.h"
@@ -19,9 +22,9 @@ public:
         classInfo->className = name;
 
         if (clang_getCursorKind(parent) == CXCursor_Namespace) {
-            const auto ns = Utils::getCursorSpelling(parent);
-            classInfo->classNameSpace = ns;
+            VisitClassNameSpaces(cursor, classInfo);
         }
+
         const auto location = Utils::getCursorSourceLocation(cursor);
         classInfo->sourceLocation = location.first;
         classInfo->sourceLocationFullPath = location.second;
@@ -41,6 +44,23 @@ public:
 
         clang_visitChildren(cursor, visitor, classInfo);
         return CXChildVisit_Continue;
+    }
+
+    static void VisitClassNameSpaces(CXCursor cursor, ClassInfo *classInfo)
+    {
+        std::vector<std::string> nameSpaces{};
+        CXCursor parentNameSpace = clang_getCursorSemanticParent(cursor);
+        while (parentNameSpace.kind == CXCursor_Namespace) {
+            nameSpaces.emplace_back(Utils::getCursorSpelling(parentNameSpace));
+            parentNameSpace = clang_getCursorSemanticParent(parentNameSpace);
+        }
+        std::string ns;
+        for (int x = nameSpaces.size() - 1; x >= 0; --x) {
+            ns += nameSpaces.at(x);
+            if (x != 0)
+                ns += "::";
+        }
+        classInfo->classNameSpace = ns;
     }
 
     static void VisitClassFields(CXCursor cursor, ClassInfo *classInfo)
