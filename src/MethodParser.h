@@ -50,14 +50,6 @@ public:
             arg->name = Utils::getCursorNameString(cursor);
             arg->type = Utils::getCursorTypeString(cursor);
 
-
-            if (type.kind == CXType_LValueReference || type.kind == CXType_RValueReference ||
-                type.kind == CXType_Pointer || type.kind == CXType_Elaborated) {
-                CXType pointee = clang_getPointeeType(type);
-                arg->name = Utils::getCursorNameString(cursor);
-                arg->type = Utils::getCursorTypeString(cursor);
-            }
-
             const CXCursorVisitor visitor =
                 [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
                 auto *const argInfo = static_cast<ArgInfo *>(client_data);

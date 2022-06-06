@@ -10,7 +10,7 @@ enum class AccessSpecifiers
     PROTECTED
 };
 
-class ReturnInfo
+class TypeInfo
 {
 public:
     std::string type;
@@ -25,7 +25,7 @@ public:
     bool isBuiltinType{false};
 };
 
-class ArgInfo : public ReturnInfo
+class ArgInfo : public TypeInfo
 {
 public:
     std::string name;
@@ -37,6 +37,8 @@ class FiledInfo : public ArgInfo
 public:
     AccessSpecifiers acessSpecifier {AccessSpecifiers::PUBLIC};
 };
+
+using ReturnInfo = TypeInfo;
 
 class MethodInfo
 {
