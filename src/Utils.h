@@ -240,7 +240,8 @@ public:
                 else if (dataLength <= sizeof(int)) {
                     output = clang_EvalResult_getAsInt(res);
                 } else {
-                    output = clang_EvalResult_getAsUnsigned(res);
+                    const auto ret = clang_EvalResult_getAsUnsigned(res);
+                    output = static_cast<uint64_t>(ret);
                 }
                 break;
             }

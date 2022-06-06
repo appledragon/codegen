@@ -4,6 +4,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <functional>
 
 #include "ClassParser.h"
 #include "EnumParser.h"
@@ -24,7 +25,7 @@ public:
     static CXChildVisitResult Parser(CXCursor cursor, CXCursor parent, CXClientData clientData)
     {
         if (clang_Location_isFromMainFile(clang_getCursorLocation(cursor)) == 0)
-            return CXChildVisit_Continue;
+            return CXChildVisit_Recurse;
 
         if (nullptr == clientData)
             return CXChildVisit_Break;

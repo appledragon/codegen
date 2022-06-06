@@ -30,8 +30,9 @@ if (AST_DUMP_JSON)
     target_include_directories(vcf-codegen
             PRIVATE
             vcf-codegen-common-inc
+            "${CMAKE_CURRENT_SOURCE_DIR}/../Jinja2Cpp/output/include"
             )
-   target_link_libraries(vcf-codegen PUBLIC ${vcf-codegen-common-link})
+   target_link_libraries(vcf-codegen PUBLIC ${vcf-codegen-common-link} jinja2cpp)
 else()
     add_executable(vcf-codegen
             ${vcf-codegen-common-src}

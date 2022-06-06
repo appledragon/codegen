@@ -9,6 +9,7 @@ option (AST_DUMP_JSON
 
 set(CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../libclang/lib/cmake/clang)
+set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../Jinja2Cpp/output/lib/jinja2cpp)
 
 set(CMAKE_ROOT_PATH  ${CMAKE_CURRENT_SOURCE_DIR})
 set (JINJA2CPP_DEPS_MODE internal CACHE STRING "" FORCE)
@@ -23,8 +24,8 @@ find_package(Clang REQUIRED)
 
 if (AST_DUMP_JSON)
     add_compile_definitions(AST_DUMP_JSON)
+    find_package(jinja2cpp REQUIRED)
 else()
-    set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../Jinja2Cpp/output/lib/jinja2cpp)
     find_package(jinja2cpp REQUIRED)
 endif(AST_DUMP_JSON)
 
@@ -98,9 +99,7 @@ elseif (WIN32 OR WIN64)
     file(COPY ${LIBCLANG_RUNTIME} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
 endif (APPLE)
 
-if (AST_DUMP_JSON)
-else()
-    file(GLOB JINJA_TPL "${CMAKE_CURRENT_SOURCE_DIR}/src/generator/jinja_tpl/*.tpl")
-    file(COPY ${JINJA_TPL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
-endif(AST_DUMP_JSON)
+
+file(GLOB JINJA_TPL "${CMAKE_CURRENT_SOURCE_DIR}/src/generator/jinja_tpl/*.tpl")
+file(COPY ${JINJA_TPL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
     

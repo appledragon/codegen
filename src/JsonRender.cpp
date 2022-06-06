@@ -7,15 +7,19 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <filesystem>
 
 #include "ClassInfo.h"
 #include "HeaderParser.h"
 #include "json.hpp"
+#include "ClassInfoJsonDump.h"
+
 using Json = nlohmann::json;
 
 constexpr const char* CONFIG_FILE_KEY = "-config";
 constexpr const char* IN_FILE_KEY = "-file";
 constexpr const char* OUT_FILE_KEY = "-output";
+constexpr const char* CHECK_DEPS = "-checkdeps";
 std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::string>& map_opts)
 {
     std::vector<std::string> arguments;
@@ -53,55 +57,8 @@ std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::s
     return arguments;
 }
 
-struct House4Girls
-{
-    std::map<std::string, ClassInfo*> runtime_relations_cache;
-    std::set<ClassInfo*> girls;
-    ~House4Girls()
-    {
-        runtime_relations_cache.clear();
-        for (const auto& girl : girls) {
-            delete girl;
-        }
-        girls.clear();
-    }
-};
-static CXClientData findTheRightClassInfoObject(CXCursor cursor, CXCursor parent, void* p_data)
-{
-    // fix me: using unique id to built the runtime relations
-    if (nullptr == p_data) {
-        return nullptr;
-    }
-    CXClientData client_data = nullptr;
-    const CXCursorKind kind = clang_getCursorKind(cursor);
 
-    auto* house = static_cast<House4Girls*>(p_data);
-    std::string parent_type = Utils::getCursorTypeString(parent);
-    std::string parent_usr = Utils::getCursorUSRString(parent);
-    std::string parent_key = parent_type + parent_usr;
-    const auto& iter = house->runtime_relations_cache.find(parent_key);
-    if (house->runtime_relations_cache.end() != iter) {
-        std::string type = Utils::getCursorTypeString(cursor);
-        std::string usr = Utils::getCursorUSRString(cursor);
-        if (!type.empty() && !usr.empty()) {
-            std::string key = type + usr;
-            house->runtime_relations_cache.insert(std::make_pair(key, iter->second));
-        }
 
-        client_data = iter->second;
-    } else if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
-               !Utils::isForwardDeclaration(cursor)) {
-        std::string type = Utils::getCursorTypeString(cursor);
-        std::string usr = Utils::getCursorUSRString(cursor);
-        std::string key = type + usr;
-        auto* value = new ClassInfo;
-        house->girls.insert(value);
-        house->runtime_relations_cache.insert(std::make_pair(key, value));
-        client_data = value;
-    }
-
-    return client_data;
-}
 
 int clangJsonRenderMain(int argc, char** argv)
 {
@@ -114,7 +71,12 @@ int clangJsonRenderMain(int argc, char** argv)
     if (map_cmd_opts.end() == iter_file) {
         return -1;
     }
-
+    std::filesystem::path out_put_dir = std::filesystem::current_path();
+    const auto& iter_output_dir = map_cmd_opts.find(OUT_FILE_KEY);
+    if (map_cmd_opts.end() != iter_output_dir) {
+        out_put_dir = iter_output_dir->second.c_str();
+    } 
+    
     std::vector<std::string> vec_arguments = parseClangRuntimeArguments(map_cmd_opts);
 
     std::vector<char*> defaultArguments{};
@@ -124,25 +86,28 @@ int clangJsonRenderMain(int argc, char** argv)
 
     const auto* const resolvedPath = iter_file->second.c_str();
     std::cerr << "Parsing " << resolvedPath << "...\n";
-
+    
     const CXIndex index = clang_createIndex(0, 1);
+    const char *const *command_line_args = defaultArguments.data();
     const CXTranslationUnit translation_unit = clang_parseTranslationUnit(index,
                                                                           resolvedPath,
-                                                                          defaultArguments.data(),
-                                                                          static_cast<int>(vec_arguments.size()),
+                                                                          command_line_args,
+                                                                          static_cast<int>(defaultArguments.size()),
                                                                           nullptr,
                                                                           0,
                                                                           CXTranslationUnit_None);
 
-    const std::shared_ptr<ClassInfo> classInfo = std::make_shared<ClassInfo>();
     const CXCursor rootCursor = clang_getTranslationUnitCursor(translation_unit);
-    House4Girls house;
-    HeaderParserClientData client_data;
-    client_data.p_func = findTheRightClassInfoObject;
-    client_data.p_data = &house;
-    clang_visitChildren(rootCursor, HeaderParser::Parser, &client_data);
+
+    const auto& iter_checkdeps = map_cmd_opts.find(CHECK_DEPS);
+    if (map_cmd_opts.end() != iter_checkdeps) {
+        ClassDepsJsonDumper::parse(rootCursor, out_put_dir);
+    }else {
+        ClassInfoJsonDumper::parse(rootCursor, out_put_dir);
+    }   
 
     clang_disposeTranslationUnit(translation_unit);
     clang_disposeIndex(index);
+
     return 0;
 }
