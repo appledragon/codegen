@@ -70,10 +70,16 @@ public:
                     argInfo->sourceLocationFullPath = location.second;
                     argInfo->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
                     // return CXChildVisit_Break;
-                }
-                return VisitArgDefaultValue(childKind, cursor, argInfo);
-
-
+                } else if (childKind >= CXCursor_FirstExpr && childKind <= CXCursor_LastExpr) {
+                    if (Utils::hasDefaultValue(childKind)) {
+                        Utils::DefaultValueType defaultValue;
+                        Utils::EvaluateDefaultValue(cursor, defaultValue);
+                        argInfo->defaultValue = defaultValue;  
+                    } else {
+                        VisitArgDefaultValue(childKind, cursor, argInfo);
+                    }
+                } 
+                return CXChildVisit_Continue;
             };
             clang_visitChildren(cursor, visitor, arg.get());
             methodInfo->methodArgs.emplace_back(*arg);
@@ -82,26 +88,19 @@ public:
         return CXChildVisit_Continue;
     }
 
-    static CXChildVisitResult VisitArgDefaultValue(const CXCursorKind childKind, CXCursor cursor, ArgInfo *argInfo)
+    static void VisitArgDefaultValue(const CXCursorKind childKind, CXCursor cursor, ArgInfo *argInfo)
     {
-        Utils::DefaultValueType defaultValue;
-        if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
+        const CXCursorVisitor visitor =
+            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+            auto *const argInfo = static_cast<ArgInfo *>(client_data);
+            const CXCursorKind childKind = clang_getCursorKind(cursor);
+            Utils::DefaultValueType defaultValue;
+            Utils::EvaluateDefaultValue(cursor, defaultValue);
             argInfo->defaultValue = defaultValue;
-        } else if (childKind >= CXCursor_FirstExpr && childKind <= CXCursor_LastExpr) {
-            const CXCursorVisitor visitor =
-                [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
-                auto *const argInfo = static_cast<ArgInfo *>(client_data);
-                const CXCursorKind childKind = clang_getCursorKind(cursor);
-                Utils::DefaultValueType defaultValue;
-                if (Utils::hasDefaultValue(childKind, cursor, defaultValue)) {
-                    argInfo->defaultValue = defaultValue;
-                }
 
-                return CXChildVisit_Continue;
-            };
-            clang_visitChildren(cursor, visitor, argInfo);
-        }
-        return CXChildVisit_Continue;
+            return CXChildVisit_Continue;
+        };
+        clang_visitChildren(cursor, visitor, argInfo);
     }
 
     static void VisitReturnInfo(const CXType type, MethodInfo& method)

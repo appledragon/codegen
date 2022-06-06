@@ -173,7 +173,7 @@ public:
         return getCursorUSRString(clang_getTypeDeclaration(type));
     }
 
-    static std::string getCursorText(CXCursor cur)
+    static std::string getCursorText(const CXCursor& cur)
     {
         CXSourceRange range = clang_getCursorExtent(cur);
         CXSourceLocation begin = clang_getRangeStart(range);
@@ -209,6 +209,7 @@ public:
     static void EvaluateDefaultValue(const CXCursor& cursor, DefaultValueType& output)
     {
         const CXType ctype = clang_getCursorType(cursor);
+        /*
         // virtual void setchar(const char* name = "xxxxxxxxx") = 0;
         if (ctype.kind == CXType_ConstantArray) {
             const auto dataType = clang_getElementType(ctype);
@@ -218,7 +219,7 @@ public:
                 output = const_cast<char*>(value.c_str());
             }
             return;
-        }
+        }*/
 
         const auto dataLength = clang_Type_getSizeOf(ctype);
 
@@ -262,7 +263,7 @@ public:
         clang_EvalResult_dispose(res);
     }
 
-    static bool hasDefaultValue(const CXCursorKind& kind, const CXCursor& cursor, DefaultValueType& output)
+    static bool hasDefaultValue(const CXCursorKind& kind)
     {
         switch (kind) {
             case CXCursor_CharacterLiteral:
@@ -273,7 +274,6 @@ public:
             case CXCursor_StringLiteral:
             case CXCursor_CXXBoolLiteralExpr:
             case CXCursor_CXXNullPtrLiteralExpr:
-                EvaluateDefaultValue(cursor, output);
                 return true;
             default:
                 return false;
