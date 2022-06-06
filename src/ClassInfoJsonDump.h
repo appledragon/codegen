@@ -124,7 +124,13 @@ private:
             }
             keywordList.push_back(strKeyword);
             methodList.push_back(method.methodName);
-            returnList.push_back(method.methodReturnInfo.type);
+            std::string return_info = method.methodReturnInfo.type;
+            if (!return_info.empty()) {
+                if (method.methodReturnInfo.isPointer) {
+                    return_info.append("*");
+                }
+            }
+            returnList.push_back(return_info);
             argList.push_back(args);
         }
 

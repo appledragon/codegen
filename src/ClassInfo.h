@@ -23,6 +23,7 @@ public:
     bool isConst{false};
     bool isReference{false};
     bool isBuiltinType{false};
+    bool isPointer{false};
 };
 
 class ArgInfo : public TypeInfo

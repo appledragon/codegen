@@ -57,9 +57,6 @@ std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::s
     return arguments;
 }
 
-
-
-
 int clangJsonRenderMain(int argc, char** argv)
 {
     if (argc < 2)
