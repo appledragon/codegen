@@ -2,8 +2,8 @@
 #include <clang-c/Index.h>
 
 #include <iterator>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "ClassInfo.h"
 #include "Utils.h"
@@ -76,6 +76,11 @@ public:
         field.sourceLocation = location.first;
         field.sourceLocationFullPath = location.second;
         field.underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
+        field.isConst = clang_isConstQualifiedType(clang_getPointeeType(type)) != 0;
+        field.isPointer = CXType_Pointer == type.kind;
+        if (CXType_LValueReference == type.kind || CXType_RValueReference == type.kind) {
+                field.isReference = true;
+        }
         classInfo->members.emplace_back(field);
     }
 
