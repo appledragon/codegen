@@ -37,6 +37,16 @@ public:
         return CXStringToStdString(clang_getFileName(file));
     }
 
+    static std::string getCursorKindSpelling(const CXCursor& cursor)
+    {
+            CXCursorKind kind = clang_getCursorKind(cursor);
+            const CXString cursorKindSpelling = clang_getCursorKindSpelling(kind);
+            std::string result = clang_getCString(cursorKindSpelling);
+
+            clang_disposeString(cursorKindSpelling);
+            return result;
+    }
+
     static std::string getCursorSpelling(const CXCursor& cursor)
     {
         const CXString cursorSpelling = clang_getCursorSpelling(cursor);

@@ -61,7 +61,7 @@ public:
         } else if (kind == CXCursor_ParmDecl) {
             auto typeName = Utils::getCursorTypeString(cursor);
 
-            std::cout << "  " << name;
+            //std::cout << "  " << name;
         } else if (kind == CXCursor_TypeRef) {
         } else {
             const CXSourceRange range = clang_getCursorExtent(cursor);
@@ -72,7 +72,7 @@ public:
             unsigned offset = 0;
             clang_getFileLocation(location, &file, &line, &column, &offset);
             auto file_name = Utils::CXStringToStdString(clang_getFileName(file));
-            std::cout << name;
+            //std::cout << name;
         }
 
         return CXChildVisit_Recurse;

@@ -87,12 +87,6 @@ public:
             };
             clang_visitChildren(cursor, visitor, arg.get());
             methodInfo->methodArgs.emplace_back(*arg);
-        } else if (CXCursor_TypeRef == childKind && methodInfo->methodReturnInfo.type.empty()) {
-            const CXType type = clang_getCursorType(cursor);
-            methodInfo->methodReturnInfo.type = Utils::getCursorNameString(cursor);
-            methodInfo->methodReturnInfo.isBuiltinType = false;
-            methodInfo->methodReturnInfo.isInSystemHeader = false;
-            // printf("%s-->return", methodInfo->methodReturnInfo.type.c_str());
         }
 
         return CXChildVisit_Continue;

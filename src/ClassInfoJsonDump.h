@@ -1,8 +1,11 @@
 #pragma once
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <map>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ClassInfo.h"
@@ -150,43 +153,50 @@ private:
     }
 };
 
-class ClassDepsJsonDumper
+class ASTTreeDumper
 {
 public:
-    struct House4Deps
-    {
-        std::set<std::string> forward_declarations;
-        std::set<std::string> class_declarations;
-        std::string file_name;
-    };
 
     static void parse(CXCursor rootCursor, std::filesystem::path& out_put_dir)
     {
-        House4Deps house;
-        const CXSourceRange range = clang_getCursorExtent(rootCursor);
-        const CXSourceLocation location = clang_getRangeStart(range);
-        CXFile file = nullptr;
-        unsigned line = 0;
-        unsigned column = 0;
-        unsigned offset = 0;
-        clang_getFileLocation(location, &file, &line, &column, &offset);
-        house.file_name = Utils::CXStringToStdString(clang_getFileName(file));
+        std::map<unsigned, int > cursor_levels;
         HeaderParserClientData client_data;
-        client_data.p_func = ClassDepsJsonDumper::findTheRightClassInfoObject;
-        client_data.p_data = &house;
+        client_data.p_func = ASTTreeDumper::findTheRightClassInfoObject;
+        client_data.p_data = &cursor_levels;
         clang_visitChildren(rootCursor, HeaderParser::Parser, &client_data);
-
-        if (!house.file_name.empty()){
-            std::filesystem::path ori_file_path{house.file_name};
-            std::string deps_file_name = ori_file_path.filename().string();
-            deps_file_name.append("_deps.json");
-            ori_file_path = out_put_dir;
-            ori_file_path /= deps_file_name;
-            ClassDepsJsonDumper::saveToFile(&house, ori_file_path.string());
-        }
     }
 
 private:
+    static void appendCXXMethodLog(const CXCursor& cursor, std::string& log)
+    {
+
+    }
+
+    static void printCXCursor(const CXCursor& cursor, int level)
+    {
+        std::string cursor_spelling = Utils::getCursorSpelling(cursor);
+        std::string cursor_kind_spelling =  Utils::getCursorKindSpelling(cursor);
+        std::string log;
+        for (int index = 0; index < level; index++)
+            log.append("\t");
+        log.append("name: ");
+        log.append(cursor_spelling);
+        log.append("\tkind: ");
+        log.append(cursor_kind_spelling);
+        switch (cursor.kind)
+        {
+            case CXCursor_CXXMethod:
+            {
+                appendCXXMethodLog(cursor, log);
+            }
+            break;
+            default:
+            break;
+        }
+        log.append("\n");
+        std::cout << log;
+    }
+
     static CXClientData findTheRightClassInfoObject(CXCursor cursor, CXCursor parent, void* p_data)
     {
         if (nullptr == p_data) {
@@ -194,48 +204,29 @@ private:
         }
 
         static ClassInfo info;
-        const CXCursorKind kind = clang_getCursorKind(cursor);
-        auto* house = static_cast<House4Deps*>(p_data);
-        if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate)) {
-            std::string tmp = Utils::getCursorSpelling(cursor);
-            if (Utils::isForwardDeclaration(cursor)) {
-                house->forward_declarations.insert(tmp);
-            } else {
-                house->class_declarations.insert(tmp);
+        auto* p_cursor_levels = static_cast<std::map<unsigned, int >* >(p_data);
+        unsigned hash = clang_hashCursor(cursor);
+        unsigned parent_hash = clang_hashCursor(parent);
+        const auto& iter = p_cursor_levels->find(hash);
+        if (p_cursor_levels->end() == iter){
+            const auto& iter_parent = p_cursor_levels->find(parent_hash);
+            if (p_cursor_levels->end() != iter_parent)
+            {
+                int level = iter_parent->second;
+                level++;
+                p_cursor_levels->insert(std::make_pair(hash, level));
+                printCXCursor(cursor, level);
+            }
+            else {
+                int level = 0;
+                p_cursor_levels->insert(std::make_pair(parent_hash, level));
+                printCXCursor(parent, level);
+                level++;
+                p_cursor_levels->insert(std::make_pair(hash, level));
+                printCXCursor(cursor, level);
             }
         }
+
         return &info;
-    }
-
-    static void saveToFile(const House4Deps* deps_info, const std::string& output_path)
-    {
-        if (nullptr == deps_info || output_path.empty())
-            return;
-
-        jinja2::ValuesMap params{};
-
-        params.emplace("FileName_placehold", deps_info->file_name);
-
-        jinja2::ValuesList forward_declarations_list{};
-        for (const auto& item : deps_info->forward_declarations) {
-            forward_declarations_list.push_back(item);
-        }
-        jinja2::ValuesList class_declarations_list{};
-        for (const auto& item : deps_info->class_declarations) {
-            class_declarations_list.push_back(item);
-        }
-
-        params.emplace("forward_declarations_list", forward_declarations_list);
-        params.emplace("class_declarations_list", class_declarations_list);
-
-        jinja2::TemplateEnv env{};
-        env.GetSettings().lstripBlocks = false;
-        env.GetSettings().trimBlocks = false;
-        jinja2::Template tpl(&env);
-        tpl.LoadFromFile(
-            "ClassDepsJsonInfo.tpl");
-        const std::filesystem::path path{output_path};
-        std::ofstream ofs(path);
-        tpl.Render(ofs, params);
     }
 };

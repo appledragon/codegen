@@ -19,7 +19,7 @@ using Json = nlohmann::json;
 constexpr const char* CONFIG_FILE_KEY = "-config";
 constexpr const char* IN_FILE_KEY = "-file";
 constexpr const char* OUT_FILE_KEY = "-output";
-constexpr const char* CHECK_DEPS = "-checkdeps";
+constexpr const char* DUMP_TREE = "-dumptree";
 
 std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::string>& map_opts)
 {
@@ -97,9 +97,9 @@ int clangJsonRenderMain(int argc, char** argv)
 
     const CXCursor rootCursor = clang_getTranslationUnitCursor(translation_unit);
 
-    const auto& iter_checkdeps = map_cmd_opts.find(CHECK_DEPS);
-    if (map_cmd_opts.end() != iter_checkdeps) {
-        ClassDepsJsonDumper::parse(rootCursor, out_put_dir);
+    const auto& iter_dump_tree = map_cmd_opts.find(DUMP_TREE);
+    if (map_cmd_opts.end() != iter_dump_tree) {
+        ASTTreeDumper::parse(rootCursor, out_put_dir);
     }else {
         ClassInfoJsonDumper::parse(rootCursor, out_put_dir);
     }   
