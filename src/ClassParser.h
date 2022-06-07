@@ -82,7 +82,7 @@ public:
             field.isReference = true;
         }
 
-        field.acessSpecifier = Utils::getCursorAccessSpecifier(cursor);
+        field.accessSpecifier = Utils::getCursorAccessSpecifier(cursor);
 
         classInfo->members.emplace_back(field);
     }
@@ -95,7 +95,7 @@ public:
         baseClass->className = Utils::getCursorSpelling(cursor);
         baseClass->sourceLocation = location.first;
         baseClass->sourceLocationFullPath = location.second;
-        baseClass->acessSpecifier = Utils::getCursorAccessSpecifier(cursor);
+        baseClass->accessSpecifier = Utils::getCursorAccessSpecifier(cursor);
         const CXCursorVisitor visitor =
             [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
             auto *const bassClassInfo = static_cast<ClassInfo *>(client_data);

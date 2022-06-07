@@ -38,7 +38,7 @@ public:
 
     static std::string getCursorKindSpelling(const CXCursor& cursor)
     {
-        CXCursorKind kind = clang_getCursorKind(cursor);
+        const CXCursorKind kind = clang_getCursorKind(cursor);
         const CXString cursorKindSpelling = clang_getCursorKindSpelling(kind);
         std::string result = clang_getCString(cursorKindSpelling);
 
@@ -182,9 +182,9 @@ public:
         return getCursorUSRString(clang_getTypeDeclaration(type));
     }
 
-    static std::string getCursorText(const CXCursor& cur)
+    static std::string getCursorText(const CXCursor& cursor)
     {
-        const CXSourceRange range = clang_getCursorExtent(cur);
+        const CXSourceRange range = clang_getCursorExtent(cursor);
         const CXSourceLocation begin = clang_getRangeStart(range);
         const CXSourceLocation end = clang_getRangeEnd(range);
         CXFile cxFile = nullptr;
@@ -233,8 +233,7 @@ public:
         const auto dataLength = clang_Type_getSizeOf(ctype);
 
         const CXEvalResult res = clang_Cursor_Evaluate(cursor);
-        const CXEvalResultKind kind = clang_EvalResult_getKind(res);
-        switch (kind) {
+        switch (clang_EvalResult_getKind(res)) {
             case CXEval_Int: {
                 if (dataLength == 1) {
                     if (ctype.kind == CXType_Char_S) {
@@ -260,7 +259,9 @@ public:
             case CXEval_ObjCStrLiteral:
             case CXEval_StrLiteral:
             case CXEval_CFStr:
-            case CXEval_Other:
+            case CXEval_Other: 
+            case CXEval_UnExposed:
+                break;
             default: {
                 const char* val = clang_EvalResult_getAsStr(res);
 
@@ -324,7 +325,7 @@ public:
             fseek(p_file, 0, SEEK_SET);
             if (0 != size) {
                 content.resize(size);
-                fread((void*)content.data(), 1, size, p_file);
+                fread(content.data(), 1, size, p_file);
             }
             fclose(p_file);
         }

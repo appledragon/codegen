@@ -39,7 +39,6 @@ public:
 
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
-        const CXType type = clang_getCursorType(cursor);
 
         if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
             !Utils::isForwardDeclaration(cursor)) {

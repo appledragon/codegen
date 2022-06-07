@@ -50,6 +50,8 @@ public:
             arg->type = Utils::getCursorTypeString(cursor);
             arg->isConst = clang_isConstQualifiedType(clang_getPointeeType(type)) != 0;
             arg->isPointer = CXType_Pointer == type.kind;
+            arg->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
+
             const CXCursorVisitor visitor =
                 [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
                 auto *const argInfo = static_cast<ArgInfo *>(client_data);
@@ -72,7 +74,6 @@ public:
                     const auto location = Utils::getCursorSourceLocation(cursor);
                     argInfo->sourceLocation = location.first;
                     argInfo->sourceLocationFullPath = location.second;
-                    argInfo->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
                     // return CXChildVisit_Break;
                 } else if (childKind >= CXCursor_FirstExpr && childKind <= CXCursor_LastExpr) {
                     if (Utils::hasDefaultValue(childKind)) {

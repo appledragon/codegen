@@ -31,7 +31,7 @@ public:
 class FiledInfo : public ArgInfo
 {
 public:
-    AccessSpecifiers acessSpecifier{AccessSpecifiers::UNKNOWN};
+    AccessSpecifiers accessSpecifier{AccessSpecifiers::UNKNOWN};
 };
 
 using ReturnInfo = TypeInfo;
@@ -66,5 +66,5 @@ public:
 class BaseClassInfo : public ClassInfo
 {
 public:
-    AccessSpecifiers acessSpecifier{AccessSpecifiers::UNKNOWN};
+    AccessSpecifiers accessSpecifier{AccessSpecifiers::UNKNOWN};
 };
