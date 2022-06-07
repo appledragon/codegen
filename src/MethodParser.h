@@ -48,7 +48,8 @@ public:
             arg->isInSystemHeader = Utils::isInSystemHeader(cursor);
             arg->name = Utils::getCursorNameString(cursor);
             arg->type = Utils::getCursorTypeString(cursor);
-
+            arg->isConst = clang_isConstQualifiedType(clang_getPointeeType(type)) != 0;
+            arg->isPointer = CXType_Pointer == type.kind;
             const CXCursorVisitor visitor =
                 [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
                 auto *const argInfo = static_cast<ArgInfo *>(client_data);
