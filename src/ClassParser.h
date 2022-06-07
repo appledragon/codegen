@@ -1,7 +1,6 @@
 #pragma once
 #include <clang-c/Index.h>
 
-#include <algorithm>
 #include <iterator>
 #include <vector>
 #include <string>
@@ -102,6 +101,5 @@ public:
         };
         clang_visitChildren(cursor, visitor, baseClass.get());
         classInfo->baseClass.emplace_back(*baseClass);
-        return;
     }
 };

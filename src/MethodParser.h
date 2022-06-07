@@ -46,7 +46,6 @@ public:
             const auto isBuiltinType = Utils::isBuiltinType(type);
             arg->isBuiltinType = isBuiltinType;
             arg->isInSystemHeader = Utils::isInSystemHeader(cursor);
-
             arg->name = Utils::getCursorNameString(cursor);
             arg->type = Utils::getCursorTypeString(cursor);
 
@@ -55,6 +54,10 @@ public:
                 auto *const argInfo = static_cast<ArgInfo *>(client_data);
                 const CXCursorKind childKind = clang_getCursorKind(cursor);
                 if (childKind == CXCursor_TypeRef || childKind == CXCursor_TemplateRef) {
+                    argInfo->isReference = true;
+                    const auto type = clang_getCursorType(parent);
+                    argInfo->isConst = clang_isConstQualifiedType(clang_getPointeeType(type)) != 0;
+
                     const auto referenced = clang_getCursorReferenced(cursor);
                     if (argInfo->type.empty()) {
                         argInfo->type = Utils::getCursorTypeString(cursor);
