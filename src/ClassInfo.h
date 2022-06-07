@@ -1,14 +1,9 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "Utils.h"
 
-enum class AccessSpecifiers
-{
-    PUBLIC,
-    PRIVATE,
-    PROTECTED
-};
+#include "AccessSpecifier.h"
+#include "Utils.h"
 
 class TypeInfo
 {
@@ -36,7 +31,7 @@ public:
 class FiledInfo : public ArgInfo
 {
 public:
-    AccessSpecifiers acessSpecifier {AccessSpecifiers::PUBLIC};
+    AccessSpecifiers acessSpecifier{AccessSpecifiers::UNKNOWN};
 };
 
 using ReturnInfo = TypeInfo;
@@ -53,6 +48,8 @@ public:
     bool isStatic{false};
 };
 
+class BaseClassInfo;
+
 class ClassInfo
 {
 public:
@@ -61,7 +58,13 @@ public:
     std::string sourceLocation;          // header file name;
     std::string sourceLocationFullPath;  // header file full path in disk
     std::vector<MethodInfo> methodList{};
-    std::vector<ClassInfo> baseClass{};
+    std::vector<BaseClassInfo> baseClass{};
     std::vector<FiledInfo> members{};
     bool isTemplateClass{false};
+};
+
+class BaseClassInfo : public ClassInfo
+{
+public:
+    AccessSpecifiers acessSpecifier{AccessSpecifiers::UNKNOWN};
 };

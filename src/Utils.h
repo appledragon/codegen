@@ -9,17 +9,18 @@
 #endif
 
 #include <clang-c/Index.h>
+
 #include <cstdint>
+#include <cstring>
+#include <map>
 #include <variant>
 
-#include <map>
-#include <cstring>
-
+#include "AccessSpecifier.h"
 
 class Utils
 {
 public:
-    using DefaultValueType = std::variant<bool, int, uint64_t, uint32_t, double, float, char, char*,std::string>;
+    using DefaultValueType = std::variant<bool, int, uint64_t, uint32_t, double, float, char, char*, std::string>;
     static std::string CXStringToStdString(const CXString& text)
     {
         std::string result;
@@ -39,12 +40,12 @@ public:
 
     static std::string getCursorKindSpelling(const CXCursor& cursor)
     {
-            CXCursorKind kind = clang_getCursorKind(cursor);
-            const CXString cursorKindSpelling = clang_getCursorKindSpelling(kind);
-            std::string result = clang_getCString(cursorKindSpelling);
+        CXCursorKind kind = clang_getCursorKind(cursor);
+        const CXString cursorKindSpelling = clang_getCursorKindSpelling(kind);
+        std::string result = clang_getCString(cursorKindSpelling);
 
-            clang_disposeString(cursorKindSpelling);
-            return result;
+        clang_disposeString(cursorKindSpelling);
+        return result;
     }
 
     static std::string getCursorSpelling(const CXCursor& cursor)
@@ -244,10 +245,9 @@ public:
                         output = static_cast<char>(ret);
                     } else {
                         // bool
-                        clang_EvalResult_getAsInt(res) == 0 ? output = false : output = true; 
+                        clang_EvalResult_getAsInt(res) == 0 ? output = false : output = true;
                     }
-                }
-                else if (dataLength <= sizeof(int)) {
+                } else if (dataLength <= sizeof(int)) {
                     output = clang_EvalResult_getAsInt(res);
                 } else {
                     const auto ret = clang_EvalResult_getAsUnsigned(res);
@@ -329,6 +329,20 @@ public:
                 fread((void*)content.data(), 1, size, p_file);
             }
             fclose(p_file);
+        }
+    }
+
+    static AccessSpecifiers getCursorAccessSpecifier(const CXCursor& cursor)
+    {
+        switch (clang_getCXXAccessSpecifier(cursor)) {
+            case CX_CXXInvalidAccessSpecifier:
+                return AccessSpecifiers::UNKNOWN;
+            case CX_CXXPublic:
+                return AccessSpecifiers::PUBLIC;
+            case CX_CXXProtected:
+                return AccessSpecifiers::PROTECTED;
+            case CX_CXXPrivate:
+                return AccessSpecifiers::PRIVATE;
         }
     }
 };

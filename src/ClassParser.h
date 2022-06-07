@@ -79,20 +79,23 @@ public:
         field.isConst = clang_isConstQualifiedType(clang_getPointeeType(type)) != 0;
         field.isPointer = CXType_Pointer == type.kind;
         if (CXType_LValueReference == type.kind || CXType_RValueReference == type.kind) {
-                field.isReference = true;
+            field.isReference = true;
         }
+
+        field.acessSpecifier = Utils::getCursorAccessSpecifier(cursor);
+
         classInfo->members.emplace_back(field);
     }
 
     static void VisitBaseClasses(CXCursor cursor, ClassInfo *classInfo)
     {
-        const auto baseClass = std::make_shared<ClassInfo>();
+        const auto baseClass = std::make_shared<BaseClassInfo>();
         const auto location = Utils::getCursorSourceLocation(cursor);
 
         baseClass->className = Utils::getCursorSpelling(cursor);
         baseClass->sourceLocation = location.first;
         baseClass->sourceLocationFullPath = location.second;
-
+        baseClass->acessSpecifier = Utils::getCursorAccessSpecifier(cursor);
         const CXCursorVisitor visitor =
             [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
             auto *const bassClassInfo = static_cast<ClassInfo *>(client_data);
