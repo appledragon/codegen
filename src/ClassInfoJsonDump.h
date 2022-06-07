@@ -21,13 +21,13 @@ class ClassInfoJsonDumper
 public:
     static void parse(CXCursor rootCursor, std::filesystem::path& out_put_dir)
     {
-        House4Girls house;
+        House4ClassInfos house;
         HeaderParserClientData client_data;
         client_data.p_func = ClassInfoJsonDumper::findTheRightClassInfoObject;
         client_data.p_data = &house;
         clang_visitChildren(rootCursor, HeaderParser::Parser, &client_data);
 
-        for (const auto* item : house.girls) {
+        for (const auto* item : house.class_infos) {
             std::string unique_file_name = item->classNameSpace;
             if (!unique_file_name.empty())
                 unique_file_name.append("_");
@@ -41,17 +41,17 @@ public:
     }
 
 private:
-    struct House4Girls
+    struct House4ClassInfos
     {
         std::map<unsigned, ClassInfo*> runtime_relations_cache;
-        std::set<ClassInfo*> girls;
-        ~House4Girls()
+        std::set<ClassInfo*> class_infos;
+        ~House4ClassInfos()
         {
             runtime_relations_cache.clear();
-            for (const auto& girl : girls) {
-                delete girl;
+            for (const auto& class_info : class_infos) {
+                delete class_info;
             }
-            girls.clear();
+            class_infos.clear();
         }
     };
 
@@ -64,7 +64,7 @@ private:
         CXClientData client_data = nullptr;
         const CXCursorKind kind = clang_getCursorKind(cursor);
 
-        auto* house = static_cast<House4Girls*>(p_data);
+        auto* house = static_cast<House4ClassInfos*>(p_data);
         unsigned hash = clang_hashCursor(cursor);
         unsigned parent_hash = clang_hashCursor(parent);
 
@@ -72,7 +72,7 @@ private:
         if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
             !Utils::isForwardDeclaration(cursor)) {
             auto* value = new ClassInfo;
-            house->girls.insert(value);
+            house->class_infos.insert(value);
             house->runtime_relations_cache.insert(std::make_pair(hash, value));
             client_data = value;
         } else if (house->runtime_relations_cache.end() != iter) {
@@ -92,6 +92,7 @@ private:
 
         params.emplace("Namespace_placehold", info->classNameSpace);
         params.emplace("Class_placehold", info->className);
+        params.emplace("File_placehold", info->sourceLocation);
 
         jinja2::ValuesList methodList{};
         jinja2::ValuesList argList{};
@@ -100,13 +101,15 @@ private:
         for (const auto& method : info->methodList) {
             if (method.isStatic)
                 continue;
-            jinja2::ValuesMap args{};
-            jinja2::ValuesList arg;
+            jinja2::ValuesList args{};
             const auto argSize = method.methodArgs.size();
             for (size_t i = 0; i < argSize; i++) {
-                arg.push_back(method.methodArgs.at(i).type);
+                jinja2::ValuesMap arg;
+                arg.emplace("name", method.methodArgs.at(i).name);
+                arg.emplace("type", method.methodArgs.at(i).type);
+                args.push_back(arg);
             }
-            args.emplace(method.methodName, arg);
+
             std::string strKeyword;
             if (method.isConst) {
                 strKeyword += "const";
@@ -137,7 +140,7 @@ private:
         env.GetSettings().lstripBlocks = false;
         env.GetSettings().trimBlocks = false;
         jinja2::Template tpl(&env);
-        tpl.LoadFromFile("ClassJsonInfo.tpl");
+        tpl.LoadFromFile("/home/datsliao/Documents/dats_work/codegen/codegen/src/generator/jinja_tpl/ClassJsonInfo.tpl");
         const std::filesystem::path path{output_path};
         std::ofstream ofs(path);
         tpl.Render(ofs, params);
