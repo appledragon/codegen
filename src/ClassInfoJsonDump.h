@@ -28,10 +28,9 @@ public:
         clang_visitChildren(rootCursor, HeaderParser::Parser, &client_data);
 
         for (const auto* item : house.class_infos) {
-            std::string unique_file_name = item->classNameSpace;
-            if (!unique_file_name.empty())
-                unique_file_name.append("_");
-            unique_file_name.append(item->className);
+            std::string unique_file_name = item->className;
+            if (unique_file_name.empty())
+                continue;
             unique_file_name.append(".json");
             std::filesystem::path tmp = out_put_dir;
             tmp /= unique_file_name;
@@ -148,7 +147,7 @@ private:
         env.GetSettings().lstripBlocks = false;
         env.GetSettings().trimBlocks = false;
         jinja2::Template tpl(&env);
-        tpl.LoadFromFile("/home/datsliao/Documents/dats_work/codegen/codegen/src/generator/jinja_tpl/ClassJsonInfo.tpl");
+        tpl.LoadFromFile("ClassJsonInfo.tpl");
         const std::filesystem::path path{output_path};
         std::ofstream ofs(path);
         tpl.Render(ofs, params);
