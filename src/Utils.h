@@ -344,5 +344,7 @@ public:
             case CX_CXXPrivate:
                 return AccessSpecifiers::PRIVATE;
         }
+
+        return AccessSpecifiers::UNKNOWN;
     }
 };

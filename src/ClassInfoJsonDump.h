@@ -43,7 +43,7 @@ public:
 private:
     struct House4Girls
     {
-        std::map<std::string, ClassInfo*> runtime_relations_cache;
+        std::map<unsigned, ClassInfo*> runtime_relations_cache;
         std::set<ClassInfo*> girls;
         ~House4Girls()
         {
@@ -65,28 +65,19 @@ private:
         const CXCursorKind kind = clang_getCursorKind(cursor);
 
         auto* house = static_cast<House4Girls*>(p_data);
-        std::string parent_type = Utils::getCursorTypeString(parent);
-        std::string parent_usr = Utils::getCursorUSRString(parent);
-        std::string parent_key = parent_type + parent_usr;
-        const auto& iter = house->runtime_relations_cache.find(parent_key);
-        if (house->runtime_relations_cache.end() != iter) {
-            std::string type = Utils::getCursorTypeString(cursor);
-            std::string usr = Utils::getCursorUSRString(cursor);
-            if (!type.empty() && !usr.empty()) {
-                std::string key = type + usr;
-                house->runtime_relations_cache.insert(std::make_pair(key, iter->second));
-            }
+        unsigned hash = clang_hashCursor(cursor);
+        unsigned parent_hash = clang_hashCursor(parent);
 
-            client_data = iter->second;
-        } else if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
-                   !Utils::isForwardDeclaration(cursor)) {
-            std::string type = Utils::getCursorTypeString(cursor);
-            std::string usr = Utils::getCursorUSRString(cursor);
-            std::string key = type + usr;
+        const auto& iter = house->runtime_relations_cache.find(parent_hash);
+        if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
+            !Utils::isForwardDeclaration(cursor)) {
             auto* value = new ClassInfo;
             house->girls.insert(value);
-            house->runtime_relations_cache.insert(std::make_pair(key, value));
+            house->runtime_relations_cache.insert(std::make_pair(hash, value));
             client_data = value;
+        } else if (house->runtime_relations_cache.end() != iter) {
+            house->runtime_relations_cache.insert(std::make_pair(hash, iter->second));
+            client_data = iter->second;
         }
 
         return client_data;
@@ -156,10 +147,9 @@ private:
 class ASTTreeDumper
 {
 public:
-
     static void parse(CXCursor rootCursor, std::filesystem::path& out_put_dir)
     {
-        std::map<unsigned, int > cursor_levels;
+        std::map<unsigned, int> cursor_levels;
         HeaderParserClientData client_data;
         client_data.p_func = ASTTreeDumper::findTheRightClassInfoObject;
         client_data.p_data = &cursor_levels;
@@ -169,29 +159,24 @@ public:
 private:
     static void appendCXXMethodLog(const CXCursor& cursor, std::string& log)
     {
-
     }
 
     static void printCXCursor(const CXCursor& cursor, int level)
     {
         std::string cursor_spelling = Utils::getCursorSpelling(cursor);
-        std::string cursor_kind_spelling =  Utils::getCursorKindSpelling(cursor);
+        std::string cursor_kind_spelling = Utils::getCursorKindSpelling(cursor);
         std::string log;
-        for (int index = 0; index < level; index++)
-            log.append("\t");
+        for (int index = 0; index < level; index++) log.append("\t");
         log.append("name: ");
         log.append(cursor_spelling);
         log.append("\tkind: ");
         log.append(cursor_kind_spelling);
-        switch (cursor.kind)
-        {
-            case CXCursor_CXXMethod:
-            {
+        switch (cursor.kind) {
+            case CXCursor_CXXMethod: {
                 appendCXXMethodLog(cursor, log);
-            }
-            break;
+            } break;
             default:
-            break;
+                break;
         }
         log.append("\n");
         std::cout << log;
@@ -204,20 +189,18 @@ private:
         }
 
         static ClassInfo info;
-        auto* p_cursor_levels = static_cast<std::map<unsigned, int >* >(p_data);
+        auto* p_cursor_levels = static_cast<std::map<unsigned, int>*>(p_data);
         unsigned hash = clang_hashCursor(cursor);
         unsigned parent_hash = clang_hashCursor(parent);
         const auto& iter = p_cursor_levels->find(hash);
-        if (p_cursor_levels->end() == iter){
+        if (p_cursor_levels->end() == iter) {
             const auto& iter_parent = p_cursor_levels->find(parent_hash);
-            if (p_cursor_levels->end() != iter_parent)
-            {
+            if (p_cursor_levels->end() != iter_parent) {
                 int level = iter_parent->second;
                 level++;
                 p_cursor_levels->insert(std::make_pair(hash, level));
                 printCXCursor(cursor, level);
-            }
-            else {
+            } else {
                 int level = 0;
                 p_cursor_levels->insert(std::make_pair(parent_hash, level));
                 printCXCursor(parent, level);
