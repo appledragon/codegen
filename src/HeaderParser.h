@@ -4,7 +4,6 @@
 #include <functional>
 #include <iostream>
 #include <string>
-#include <functional>
 
 #include "ClassParser.h"
 #include "EnumParser.h"

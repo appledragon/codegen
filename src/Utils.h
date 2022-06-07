@@ -4,9 +4,7 @@
 #ifdef __APPLE__
 #include <libgen.h>
 #endif
-#if defined(linux) || defined(__linux) || defined(__linux__)
 #include <memory>
-#endif
 
 #include <clang-c/Index.h>
 
@@ -189,9 +187,9 @@ public:
         const CXSourceRange range = clang_getCursorExtent(cur);
         const CXSourceLocation begin = clang_getRangeStart(range);
         const CXSourceLocation end = clang_getRangeEnd(range);
-        CXFile cxFile;
-        unsigned int beginOff;
-        unsigned int endOff;
+        CXFile cxFile = nullptr;
+        unsigned int beginOff = 0;
+        unsigned int endOff = 0;
         clang_getExpansionLocation(begin, &cxFile, nullptr, nullptr, &beginOff);
         clang_getExpansionLocation(end, nullptr, nullptr, nullptr, &endOff);
         const CXString filename = clang_getFileName(cxFile);
