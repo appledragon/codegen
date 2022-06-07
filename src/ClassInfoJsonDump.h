@@ -28,10 +28,9 @@ public:
         clang_visitChildren(rootCursor, HeaderParser::Parser, &client_data);
 
         for (const auto* item : house.class_infos) {
-            std::string unique_file_name = item->classNameSpace;
-            if (!unique_file_name.empty())
-                unique_file_name.append("_");
-            unique_file_name.append(item->className);
+            std::string unique_file_name = item->className;
+            if (unique_file_name.empty())
+                continue;
             unique_file_name.append(".json");
             std::filesystem::path tmp = out_put_dir;
             tmp /= unique_file_name;
@@ -68,16 +67,24 @@ private:
         unsigned hash = clang_hashCursor(cursor);
         unsigned parent_hash = clang_hashCursor(parent);
 
-        const auto& iter = house->runtime_relations_cache.find(parent_hash);
+        const auto& iter_parent = house->runtime_relations_cache.find(parent_hash);
         if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
             !Utils::isForwardDeclaration(cursor)) {
-            auto* value = new ClassInfo;
-            house->class_infos.insert(value);
-            house->runtime_relations_cache.insert(std::make_pair(hash, value));
-            client_data = value;
-        } else if (house->runtime_relations_cache.end() != iter) {
-            house->runtime_relations_cache.insert(std::make_pair(hash, iter->second));
-            client_data = iter->second;
+            const auto& iter = house->runtime_relations_cache.find(hash);
+            if (house->runtime_relations_cache.end() != iter)
+            {
+                 client_data = iter->second;
+            }
+            else {
+                auto* value = new ClassInfo;
+                house->class_infos.insert(value);
+                house->runtime_relations_cache.insert(std::make_pair(hash, value));
+                client_data = value;
+            }
+
+        } else if (house->runtime_relations_cache.end() != iter_parent) {
+            house->runtime_relations_cache.insert(std::make_pair(hash, iter_parent->second));
+            client_data = iter_parent->second;
         }
 
         return client_data;
@@ -140,7 +147,7 @@ private:
         env.GetSettings().lstripBlocks = false;
         env.GetSettings().trimBlocks = false;
         jinja2::Template tpl(&env);
-        tpl.LoadFromFile("/home/datsliao/Documents/dats_work/codegen/codegen/src/generator/jinja_tpl/ClassJsonInfo.tpl");
+        tpl.LoadFromFile("ClassJsonInfo.tpl");
         const std::filesystem::path path{output_path};
         std::ofstream ofs(path);
         tpl.Render(ofs, params);
