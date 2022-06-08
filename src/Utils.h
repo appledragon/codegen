@@ -62,44 +62,6 @@ public:
         return clang_Location_isInSystemHeader(location) > 0;
     }
 
-#ifdef _MSC_VER
-    static char* baseName(const char* path)
-    {
-        char* base1 = const_cast<char*>(strrchr(path, '/'));
-        if (char* base2 = const_cast<char*>(strrchr(path, '\\')); base1 && base2)
-            return ((base1 > base2) ? base1 + 1 : base2 + 1);
-        else {
-            if (base1)
-                return (base1 + 1);
-            if (base2)
-                return (base2 + 1);
-        }
-
-        return const_cast<char*>(path);
-    }
-
-    static char* dirname(char* path)
-    {
-        char* base1 = strrchr(path, '/');
-        if (char* base2 = strrchr(path, '\\'); base1 && base2)
-            if (base1 > base2)
-                *base1 = 0;
-            else
-                *base2 = 0;
-        else if (base1)
-            *base1 = 0;
-        else if (base2)
-            *base2 = 0;
-
-        return path;
-    }
-#else
-    static char* baseName(const char* path)
-    {
-        return (const_cast<char*>(path));
-    }
-#endif
-
     static std::string getCursorSource(const CXCursor& cursor)
     {
         const CXSourceLocation Loc = clang_getCursorLocation(cursor);
@@ -108,9 +70,9 @@ public:
         const CXString source = clang_getFileName(file);
         if (clang_getCString(source) == nullptr) {
             clang_disposeString(source);
-            return "<invalid loc>";
+            return {};
         }
-        const char* b = baseName(clang_getCString(source));
+        const char* b = clang_getCString(source);
         clang_disposeString(source);
         return b;
     }
