@@ -16,8 +16,8 @@ else
     echo "ninja found, use ninja "
     generator=Ninja
 fi
-script_path=$(dirname "$0")
-src_path=$script_path
+
+src_path=$(dirname "$0")/../
 rm -rf "${src_path}"/output/mac/Debug
 rm -rf "${src_path}"/build
 $cmake -G ${generator} -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_BUILD_TYPE=Debug  -Djinja2cpp_DIR=..\Jinja2Cpp\output\lib\jinja2cpp -B "${src_path}"/build "${src_path}"

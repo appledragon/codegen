@@ -1,6 +1,5 @@
 @echo off
-set SCRIPT_DIR=%~dp0
-set SRC_DIR=%~dp0
+set SRC_DIR=%~dp0..\
 cd %SRC_DIR%
 rd /s /q %SRC_DIR%\output\win\Debug
 rd /s /q %SRC_DIR%\build
