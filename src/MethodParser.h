@@ -59,12 +59,14 @@ public:
                 [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
                 auto *const argInfo = static_cast<ArgInfo *>(client_data);
                 const CXCursorKind childKind = clang_getCursorKind(cursor);
+
                 if (childKind == CXCursor_TypeRef || childKind == CXCursor_TemplateRef) {
                     argInfo->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
-                    argInfo->isReference = true;
                     const auto type = clang_getCursorType(parent);
                     argInfo->isConst = clang_isConstQualifiedType(clang_getPointeeType(type)) != 0;
-
+                    if (CXType_LValueReference == type.kind || CXType_RValueReference == type.kind) {
+                        argInfo->isReference = true;
+                    }
                     const auto referenced = clang_getCursorReferenced(cursor);
                     if (argInfo->type.empty()) {
                         argInfo->type = Utils::getCursorTypeString(cursor);
