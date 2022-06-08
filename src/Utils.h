@@ -4,13 +4,12 @@
 #ifdef __APPLE__
 #include <libgen.h>
 #endif
-#include <memory>
-
 #include <clang-c/Index.h>
 
 #include <cstdint>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <variant>
 
 #include "AccessSpecifier.h"
@@ -311,6 +310,15 @@ public:
                 }
                 map_opts.emplace(std::make_pair(key, value));
             }
+        }
+    }
+
+    static void replaceAllSubString(std::string& str, std::string& from, std::string& to)
+    {
+        size_t start_pos = 0;
+        while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+            str.replace(start_pos, from.length(), to);
+            start_pos += to.length();
         }
     }
 

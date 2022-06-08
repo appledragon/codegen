@@ -113,7 +113,7 @@ private:
             for (size_t i = 0; i < argSize; i++) {
                 jinja2::ValuesMap arg;
                 arg.emplace("name", method.methodArgs.at(i).name);
-                arg.emplace("type", method.methodArgs.at(i).type);
+                arg.emplace("type", method.methodArgs.at(i).underlyingType.empty() ? method.methodArgs.at(i).type : method.methodArgs.at(i).underlyingType);
                 args.push_back(arg);
             }
 
@@ -128,7 +128,7 @@ private:
             }
             keywordList.push_back(strKeyword);
             methodList.push_back(method.methodName);
-            std::string return_info = method.methodReturnInfo.type;
+            std::string return_info = method.methodReturnInfo.underlyingType.empty() ? method.methodReturnInfo.type : method.methodReturnInfo.underlyingType;
             if (!return_info.empty()) {
                 if (method.methodReturnInfo.isPointer) {
                     return_info.append("*");
@@ -147,7 +147,9 @@ private:
         env.GetSettings().lstripBlocks = false;
         env.GetSettings().trimBlocks = false;
         jinja2::Template tpl(&env);
-        tpl.LoadFromFile("ClassJsonInfo.tpl");
+        std::filesystem::path tpl_path = std::filesystem::current_path();
+        tpl_path /= "ClassJsonInfo.tpl";
+        tpl.LoadFromFile(tpl_path.c_str());
         const std::filesystem::path path{output_path};
         std::ofstream ofs(path);
         tpl.Render(ofs, params);
