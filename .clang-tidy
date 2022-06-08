@@ -22,5 +22,6 @@ Checks: '
   -modernize-avoid-c-arrays,
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   -readability-named-parameter,
+  -readability-identifier-length,
   -cert-env33-c
   '
