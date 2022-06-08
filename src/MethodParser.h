@@ -50,13 +50,13 @@ public:
             arg->type = Utils::getCursorTypeString(cursor);
             arg->isConst = clang_isConstQualifiedType(clang_getPointeeType(type)) != 0;
             arg->isPointer = CXType_Pointer == type.kind;
-            arg->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
 
             const CXCursorVisitor visitor =
                 [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
                 auto *const argInfo = static_cast<ArgInfo *>(client_data);
                 const CXCursorKind childKind = clang_getCursorKind(cursor);
                 if (childKind == CXCursor_TypeRef || childKind == CXCursor_TemplateRef) {
+                    argInfo->underlyingType = Utils::getCursorUnderlyingTypeString(cursor);
                     argInfo->isReference = true;
                     const auto type = clang_getCursorType(parent);
                     argInfo->isConst = clang_isConstQualifiedType(clang_getPointeeType(type)) != 0;
