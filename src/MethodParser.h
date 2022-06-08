@@ -17,7 +17,7 @@ public:
         const CXType type = clang_getCursorType(cursor);
 
         const auto method = std::make_shared<MethodInfo>();
-        method->methodName = Utils::getCursorNameString(cursor);
+        method->name = Utils::getCursorNameString(cursor);
         method->accessSpecifier = Utils::getCursorAccessSpecifier(cursor);
 
         VisitReturnInfo(type, *method);
@@ -93,7 +93,7 @@ public:
                 return CXChildVisit_Continue;
             };
             clang_visitChildren(cursor, visitor, arg.get());
-            methodInfo->methodArgs.emplace_back(*arg);
+            methodInfo->args.emplace_back(*arg);
         }
 
         return CXChildVisit_Continue;
@@ -121,14 +121,14 @@ public:
         const auto returnCursor = clang_getTypeDeclaration(returnType);
 
         if (Utils::isBuiltinType(returnType)) {
-            method.methodReturnInfo.type = Utils::getCursorTypeString(returnType);
-            method.methodReturnInfo.isBuiltinType = true;
-            method.methodReturnInfo.isInSystemHeader = true;
+            method.returnInfo.type = Utils::getCursorTypeString(returnType);
+            method.returnInfo.isBuiltinType = true;
+            method.returnInfo.isInSystemHeader = true;
         } else if (Utils::isForwardDeclaration(returnCursor)) {
             if (CXType_Pointer == returnType.kind) {
-                method.methodReturnInfo.isPointer = true;
+                method.returnInfo.isPointer = true;
             } else if (CXType_LValueReference == returnType.kind || CXType_RValueReference == returnType.kind) {
-                method.methodReturnInfo.isReference = true;
+                method.returnInfo.isReference = true;
             }
             CXType type = clang_getPointeeType(returnType);
             std::string underflying_name;
@@ -139,19 +139,19 @@ public:
                 //std::string typedef_name = Utils::getCursorTypeString(typedef_Cursor);
                 //Utils::replaceAllSubString(type_name, typedef_name, underflying_name); //not best solution
             }
-            method.methodReturnInfo.type = type_name;
+            method.returnInfo.type = type_name;
             if (!underflying_name.empty())
-                method.methodReturnInfo.underlyingType = underflying_name;
+                method.returnInfo.underlyingType = underflying_name;
         } else {
             // return has no name
             // method->methodReturnInfo.name = Utils::getCursorNameString(returnCursor);
-            method.methodReturnInfo.type = Utils::getCursorTypeString(returnCursor);
+            method.returnInfo.type = Utils::getCursorTypeString(returnCursor);
             const auto location = Utils::getCursorSourceLocation(returnCursor);
-            method.methodReturnInfo.isInSystemHeader = Utils::isInSystemHeader(returnCursor);
+            method.returnInfo.isInSystemHeader = Utils::isInSystemHeader(returnCursor);
 
-            method.methodReturnInfo.sourceLocation = location.first;
-            method.methodReturnInfo.sourceLocationFullPath = location.second;
-            method.methodReturnInfo.underlyingType = Utils::getCursorUnderlyingTypeString(returnCursor);
+            method.returnInfo.sourceLocation = location.first;
+            method.returnInfo.sourceLocationFullPath = location.second;
+            method.returnInfo.underlyingType = Utils::getCursorUnderlyingTypeString(returnCursor);
         }
     }
 };

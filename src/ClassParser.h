@@ -18,7 +18,7 @@ public:
         const auto name = Utils::getCursorSpelling(cursor);
         const CXType type = clang_getCursorType(cursor);
 
-        classInfo->className = name;
+        classInfo->name = name;
 
         if (clang_getCursorKind(parent) == CXCursor_Namespace) {
             VisitClassNameSpaces(cursor, classInfo);
@@ -59,7 +59,7 @@ public:
             if (x != 0)
                 ns += "::";
         }
-        classInfo->classNameSpace = ns;
+        classInfo->nameSpace = ns;
     }
 
     static void VisitClassFields(CXCursor cursor, ClassInfo *classInfo)
@@ -92,7 +92,7 @@ public:
         const auto baseClass = std::make_shared<BaseClassInfo>();
         const auto location = Utils::getCursorSourceLocation(cursor);
 
-        baseClass->className = Utils::getCursorSpelling(cursor);
+        baseClass->name = Utils::getCursorSpelling(cursor);
         baseClass->sourceLocation = location.first;
         baseClass->sourceLocationFullPath = location.second;
         baseClass->accessSpecifier = Utils::getCursorAccessSpecifier(cursor);
@@ -103,7 +103,7 @@ public:
             if (childKind == CXCursor_TemplateRef) {
                 bassClassInfo->isTemplateClass = true;
             } else if (childKind == CXCursor_NamespaceRef) {
-                bassClassInfo->classNameSpace = Utils::getCursorSpelling(cursor);
+                bassClassInfo->nameSpace = Utils::getCursorSpelling(cursor);
             }
             return CXChildVisit_Continue;
         };

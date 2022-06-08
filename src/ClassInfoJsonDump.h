@@ -28,7 +28,7 @@ public:
         clang_visitChildren(rootCursor, HeaderParser::Parser, &client_data);
 
         for (const auto* item : house.class_infos) {
-            std::string unique_file_name = item->className;
+            std::string unique_file_name = item->name;
             if (unique_file_name.empty())
                 continue;
             unique_file_name.append(".json");
@@ -97,8 +97,8 @@ private:
 
         jinja2::ValuesMap params{};
 
-        params.emplace("Namespace_placehold", info->classNameSpace);
-        params.emplace("Class_placehold", info->className);
+        params.emplace("Namespace_placehold", info->nameSpace);
+        params.emplace("Class_placehold", info->name);
         params.emplace("File_placehold", info->sourceLocation);
 
         jinja2::ValuesList methodList{};
@@ -109,11 +109,13 @@ private:
             if (method.isStatic)
                 continue;
             jinja2::ValuesList args{};
-            const auto argSize = method.methodArgs.size();
+            const auto argSize = method.args.size();
             for (size_t i = 0; i < argSize; i++) {
                 jinja2::ValuesMap arg;
-                arg.emplace("name", method.methodArgs.at(i).name);
-                arg.emplace("type", method.methodArgs.at(i).underlyingType.empty() ? method.methodArgs.at(i).type : method.methodArgs.at(i).underlyingType);
+                arg.emplace("name", method.args.at(i).name);
+                arg.emplace("type",
+                            method.args.at(i).underlyingType.empty() ? method.args.at(i).type
+                                                                     : method.args.at(i).underlyingType);
                 args.push_back(arg);
             }
 
@@ -127,10 +129,11 @@ private:
                 strKeyword += "override";
             }
             keywordList.push_back(strKeyword);
-            methodList.push_back(method.methodName);
-            std::string return_info = method.methodReturnInfo.underlyingType.empty() ? method.methodReturnInfo.type : method.methodReturnInfo.underlyingType;
+            methodList.push_back(method.name);
+            std::string return_info =
+                method.returnInfo.underlyingType.empty() ? method.returnInfo.type : method.returnInfo.underlyingType;
             if (!return_info.empty()) {
-                if (method.methodReturnInfo.isPointer) {
+                if (method.returnInfo.isPointer) {
                     return_info.append("*");
                 }
             }
@@ -149,7 +152,7 @@ private:
         jinja2::Template tpl(&env);
         std::filesystem::path tpl_path = std::filesystem::current_path();
         tpl_path /= "ClassJsonInfo.tpl";
-        tpl.LoadFromFile(tpl_path.c_str());
+        tpl.LoadFromFile(tpl_path.string());
         const std::filesystem::path path{output_path};
         std::ofstream ofs(path);
         tpl.Render(ofs, params);

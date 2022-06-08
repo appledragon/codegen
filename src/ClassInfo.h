@@ -39,10 +39,10 @@ using ReturnInfo = TypeInfo;
 class MethodInfo
 {
 public:
-    ReturnInfo methodReturnInfo;
-    std::string methodName;
-    std::string methodFullName;
-    std::vector<ArgInfo> methodArgs{};
+    ReturnInfo returnInfo;
+    std::string name;
+    std::string fullName;
+    std::vector<ArgInfo> args{};
     bool isConst{false};
     bool isVirtual{false};
     bool isStatic{false};
@@ -54,8 +54,8 @@ class BaseClassInfo;
 class ClassInfo
 {
 public:
-    std::string classNameSpace;
-    std::string className;
+    std::string nameSpace;
+    std::string name;
     std::string sourceLocation;          // header file name;
     std::string sourceLocationFullPath;  // header file full path in disk
     std::vector<MethodInfo> constructors{};
