@@ -131,14 +131,17 @@ public:
                 method.methodReturnInfo.isReference = true;
             }
             CXType type = clang_getPointeeType(returnType);
+            std::string underflying_name;
             std::string type_name = Utils::getCursorTypeString(clang_getPointeeType(returnType));
             if (CXType_Typedef == type.kind) {
                 const auto typedef_Cursor = clang_getTypeDeclaration(type);
-                std::string underflying_name = Utils::getCursorUnderlyingTypeString(typedef_Cursor);
-                std::string typedef_name = Utils::getCursorTypeString(typedef_Cursor);
-                Utils::replaceAllSubString(type_name, typedef_name, underflying_name); //not best solution
+                underflying_name = Utils::getCursorUnderlyingTypeString(typedef_Cursor);
+                //std::string typedef_name = Utils::getCursorTypeString(typedef_Cursor);
+                //Utils::replaceAllSubString(type_name, typedef_name, underflying_name); //not best solution
             }
             method.methodReturnInfo.type = type_name;
+            if (!underflying_name.empty())
+                method.methodReturnInfo.underlyingType = underflying_name;
         } else {
             // return has no name
             // method->methodReturnInfo.name = Utils::getCursorNameString(returnCursor);
