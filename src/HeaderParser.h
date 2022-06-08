@@ -53,7 +53,7 @@ public:
             }
         } else if (kind == CXCursor_CXXBaseSpecifier) {
         } else if (kind == CXCursor_FunctionDecl) {
-        } else if (kind == CXCursor_CXXMethod) {
+        } else if (kind == CXCursor_CXXMethod || kind == CXCursor_Constructor) {
             MethodParser::VisitClassMethod(cursor, parent, clang_index_client_data);
         } else if (kind == CXCursor_FunctionTemplate) {
         } else if (kind == CXCursor_ParmDecl) {

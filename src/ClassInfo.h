@@ -46,6 +46,7 @@ public:
     bool isConst{false};
     bool isVirtual{false};
     bool isStatic{false};
+    AccessSpecifiers accessSpecifier{AccessSpecifiers::UNKNOWN};
 };
 
 class BaseClassInfo;
@@ -57,6 +58,7 @@ public:
     std::string className;
     std::string sourceLocation;          // header file name;
     std::string sourceLocationFullPath;  // header file full path in disk
+    std::vector<MethodInfo> constructors{};
     std::vector<MethodInfo> methodList{};
     std::vector<BaseClassInfo> baseClass{};
     std::vector<FiledInfo> members{};

@@ -18,6 +18,7 @@ public:
 
         const auto method = std::make_shared<MethodInfo>();
         method->methodName = Utils::getCursorNameString(cursor);
+        method->accessSpecifier = Utils::getCursorAccessSpecifier(cursor);
 
         VisitReturnInfo(type, *method);
 
@@ -31,8 +32,11 @@ public:
         };
 
         clang_visitChildren(cursor, visitor, method.get());
-        classInfo->methodList.emplace_back(*method);
-
+        if (kind == CXCursor_Constructor) {
+            classInfo->constructors.emplace_back(*method);
+        } else {
+            classInfo->methodList.emplace_back(*method);
+        }
         return CXChildVisit_Continue;
     }
 
