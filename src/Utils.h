@@ -8,8 +8,10 @@
 
 #include <cstdint>
 #include <cstring>
+#include <fstream>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <variant>
 
 #include "AccessSpecifier.h"
@@ -192,26 +194,19 @@ public:
         clang_getExpansionLocation(begin, &cxFile, nullptr, nullptr, &beginOff);
         clang_getExpansionLocation(end, nullptr, nullptr, nullptr, &endOff);
         const CXString filename = clang_getFileName(cxFile);
-        const unsigned int textSize = endOff - beginOff;
+        unsigned int textSize = endOff - beginOff;
 
-        FILE* file = fopen(CXStringToStdString(filename).c_str(), "r");
-        if (file == nullptr) {
-            return {};
+        std::ifstream file;
+        file.open(CXStringToStdString(filename).c_str());
+        if (file.good()) {
+            file.seekg(beginOff, std::ios::beg);
+            if (textSize > 4096) textSize = 4096;
+            char buff[4096];
+            file.read(buff, textSize);
+            file.close();
+            return {buff};
         }
-        fseek(file, beginOff, SEEK_SET);
-        char buff[4096];
-        char* pBuff = buff;
-        if (textSize + 1 > sizeof(buff)) {
-            pBuff = new char[textSize + 1];
-        }
-        pBuff[textSize] = '\0';
-        fread(pBuff, 1, textSize, file);
-        std::string res(pBuff);
-        if (pBuff != buff) {
-            delete[] pBuff;
-        }
-        fclose(file);
-        return res;
+        return {};
     }
 
     static void EvaluateDefaultValue(const CXCursor& cursor, DefaultValueType& output)
@@ -258,7 +253,7 @@ public:
             case CXEval_ObjCStrLiteral:
             case CXEval_StrLiteral:
             case CXEval_CFStr:
-            case CXEval_Other: 
+            case CXEval_Other:
             case CXEval_UnExposed:
                 break;
             default: {
@@ -326,17 +321,10 @@ public:
     {
         if (nullptr == path)
             return;
-        FILE* p_file = fopen(path, "r");
-        if (nullptr != p_file) {
-            fseek(p_file, 0, SEEK_END);
-            const size_t size = ftell(p_file);
-            fseek(p_file, 0, SEEK_SET);
-            if (0 != size) {
-                content.resize(size);
-                fread(content.data(), 1, size, p_file);
-            }
-            fclose(p_file);
-        }
+        std::ifstream file(path);
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        content = buffer.str();
     }
 
     static AccessSpecifiers getCursorAccessSpecifier(const CXCursor& cursor)
