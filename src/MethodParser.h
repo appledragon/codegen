@@ -27,7 +27,7 @@ public:
         method->isStatic = clang_CXXMethod_isStatic(cursor) != 0U;
 
         const CXCursorVisitor visitor =
-            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+            [](CXCursor cursor, CXCursor parent, CXClientData client_data) {
             return VisitMethodArgs(client_data, cursor);
         };
 
@@ -56,7 +56,7 @@ public:
             arg->isPointer = CXType_Pointer == type.kind;
 
             const CXCursorVisitor visitor =
-                [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+                [](CXCursor cursor, CXCursor parent, CXClientData client_data) {
                 auto *const argInfo = static_cast<ArgInfo *>(client_data);
                 const CXCursorKind childKind = clang_getCursorKind(cursor);
 
@@ -102,7 +102,7 @@ public:
     static void VisitArgDefaultValue(const CXCursorKind childKind, CXCursor cursor, ArgInfo *argInfo)
     {
         const CXCursorVisitor visitor =
-            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+            [](CXCursor cursor, CXCursor parent, CXClientData client_data) {
             auto *const argInfo = static_cast<ArgInfo *>(client_data);
             const CXCursorKind childKind = clang_getCursorKind(cursor);
             Utils::DefaultValueType defaultValue;
@@ -136,9 +136,8 @@ public:
             if (CXType_Typedef == type.kind) {
                 const auto typedef_Cursor = clang_getTypeDeclaration(type);
                 underflying_name = Utils::getCursorUnderlyingTypeString(typedef_Cursor);
-                //std::string typedef_name = Utils::getCursorTypeString(typedef_Cursor);
-                //Utils::replaceAllSubString(type_name, typedef_name, underflying_name); //not best solution
             }
+
             method.returnInfo.type = std::move(type_name);
             if (!underflying_name.empty())
                 method.returnInfo.underlyingType = std::move(underflying_name);

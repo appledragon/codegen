@@ -97,7 +97,7 @@ public:
         baseClass->sourceLocationFullPath = location.second;
         baseClass->accessSpecifier = Utils::getCursorAccessSpecifier(cursor);
         const CXCursorVisitor visitor =
-            [](CXCursor cursor, CXCursor parent, CXClientData client_data) -> CXChildVisitResult {
+            [](CXCursor cursor, CXCursor parent, CXClientData client_data){
             auto *const bassClassInfo = static_cast<ClassInfo *>(client_data);
             const CXCursorKind childKind = clang_getCursorKind(cursor);
             if (childKind == CXCursor_TemplateRef) {

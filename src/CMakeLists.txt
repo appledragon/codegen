@@ -7,7 +7,7 @@ if (APPLE OR LINUX)
 	set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 endif()
 
-file(GLOB vcf-codegen-common-src 
+file(GLOB codegen-common-src 
         main.cpp
         Utils.h
         ClassInfo.h
@@ -18,36 +18,36 @@ file(GLOB vcf-codegen-common-src
         EnumParser.h
     )
 
-set(vcf-codegen-common-link libclang)
-set(vcf-codegen-common-inc "${CLANG_INCLUDE_DIRS}")
+set(codegen-common-link libclang)
+set(codegen-common-inc "${CLANG_INCLUDE_DIRS}")
 
 if (AST_DUMP_JSON)
-    add_executable(vcf-codegen
-            ${vcf-codegen-common-src}
+    add_executable(codegen
+            ${codegen-common-src}
             JsonRender.cpp
             )
     
-    target_include_directories(vcf-codegen
+    target_include_directories(codegen
             PRIVATE
-            vcf-codegen-common-inc
+            codegen-common-inc
             )
-   target_link_libraries(vcf-codegen PUBLIC ${vcf-codegen-common-link})
+   target_link_libraries(codegen PUBLIC ${codegen-common-link})
 else()
-    add_executable(vcf-codegen
-            ${vcf-codegen-common-src}
+    add_executable(codegen
+            ${codegen-common-src}
             Jinja2Render.cpp
             generator/FileGenerator.h
             generator/FileGenerator.cpp
             )
-    target_include_directories(vcf-codegen
+    target_include_directories(codegen
             PRIVATE
-            vcf-codegen-common-inc
+            codegen-common-inc
             "${JINJA2CPP_INCLUDE_DIR}"
             )
-    target_link_libraries(vcf-codegen PUBLIC ${vcf-codegen-common-link} jinja2cpp)
+    target_link_libraries(codegen PUBLIC ${codegen-common-link} jinja2cpp)
 endif(AST_DUMP_JSON)
 
-set_target_properties( vcf-codegen
+set_target_properties(codegen
 		PROPERTIES
         CXX_STANDARD 17
 		LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
@@ -55,7 +55,7 @@ set_target_properties( vcf-codegen
 		)
 
 if (APPLE)
-	install(TARGETS vcf-codegen DESTINATION lib)
+	install(TARGETS codegen DESTINATION lib)
 else()
-	install(TARGETS vcf-codegen DESTINATION bin)
+	install(TARGETS codegen DESTINATION bin)
 endif ()

@@ -177,18 +177,6 @@ public:
     static void EvaluateDefaultValue(const CXCursor& cursor, DefaultValueType& output)
     {
         const CXType ctype = clang_getCursorType(cursor);
-        /*
-        // virtual void setchar(const char* name = "xxxxxxxxx") = 0;
-        if (ctype.kind == CXType_ConstantArray) {
-            const auto dataType = clang_getElementType(ctype);
-            if (dataType.kind == CXType_Char_S) {
-                // TODO need change, ugly way to read file.
-                const auto value = getCursorText(cursor);
-                output = const_cast<char*>(value.c_str());
-            }
-            return;
-        }*/
-
         const auto dataLength = clang_Type_getSizeOf(ctype);
 
         const CXEvalResult res = clang_Cursor_Evaluate(cursor);
@@ -270,15 +258,6 @@ public:
                 }
                 map_opts.emplace(std::make_pair(key, value));
             }
-        }
-    }
-
-    static void replaceAllSubString(std::string& str, const std::string& from, const std::string& to)
-    {
-        size_t start_pos = 0;
-        while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-            str.replace(start_pos, from.length(), to);
-            start_pos += to.length();
         }
     }
 
