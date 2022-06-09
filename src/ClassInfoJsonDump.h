@@ -11,6 +11,7 @@
 #include "ClassInfo.h"
 #include "HeaderParser.h"
 #include "Utils.h"
+#include "clang-c/Index.h"
 #include "jinja2cpp/filesystem_handler.h"
 #include "jinja2cpp/template.h"
 #include "jinja2cpp/template_env.h"
@@ -44,6 +45,7 @@ private:
     {
         std::map<unsigned, ClassInfo*> runtime_relations_cache;
         std::set<ClassInfo*> class_infos;
+        ClassInfo* class_info_for_functions = nullptr;
         ~House4ClassInfos()
         {
             runtime_relations_cache.clear();
@@ -68,23 +70,47 @@ private:
         unsigned parent_hash = clang_hashCursor(parent);
 
         const auto& iter_parent = house->runtime_relations_cache.find(parent_hash);
-        if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
-            !Utils::isForwardDeclaration(cursor)) {
-            const auto& iter = house->runtime_relations_cache.find(hash);
-            if (house->runtime_relations_cache.end() != iter)
-            {
-                 client_data = iter->second;
-            }
-            else {
-                auto* value = new ClassInfo;
-                house->class_infos.insert(value);
-                house->runtime_relations_cache.insert(std::make_pair(hash, value));
-                client_data = value;
-            }
 
-        } else if (house->runtime_relations_cache.end() != iter_parent) {
+        switch (kind) {
+            case CXCursor_ClassDecl:
+            case CXCursor_StructDecl:
+            case CXCursor_ClassTemplate: {
+                if (!Utils::isForwardDeclaration(cursor)) {
+                    const auto& iter = house->runtime_relations_cache.find(hash);
+                    if (house->runtime_relations_cache.end() != iter) {
+                        client_data = iter->second;
+                    } else {
+                        auto* value = new ClassInfo;
+                        house->class_infos.insert(value);
+                        house->runtime_relations_cache.insert(std::make_pair(hash, value));
+                        client_data = value;
+                    }
+                }
+            } break;
+            case CXCursor_FunctionDecl: {
+                if (nullptr == house->class_info_for_functions) {
+                    house->class_info_for_functions = new ClassInfo;
+                    // global api we fake a class info named VCF-CODEGEN-FAKE
+                    if (nullptr != house->class_info_for_functions && CXCursor_FunctionDecl == cursor.kind) {
+                        house->class_info_for_functions->name = "VCF-CODEGEN-FAKE";
+                        ClassParser::VisitClassNameSpaces(cursor, house->class_info_for_functions);
+                    }
+                    house->class_infos.insert(house->class_info_for_functions);
+                }
+                client_data = house->class_info_for_functions;
+            } break;
+            default:
+                break;
+        }
+
+        if (nullptr == client_data && house->runtime_relations_cache.end() != iter_parent) {
             house->runtime_relations_cache.insert(std::make_pair(hash, iter_parent->second));
             client_data = iter_parent->second;
+        }
+
+        if (nullptr == client_data) {
+            static ClassInfo s_classinfo;
+            client_data = &s_classinfo;
         }
 
         return client_data;

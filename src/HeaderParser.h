@@ -1,6 +1,7 @@
 #pragma once
 #include <clang-c/Index.h>
 
+#include <cstdio>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -10,7 +11,7 @@
 #include "MethodParser.h"
 #include "Utils.h"
 
-using fnFindTheRightGirl = std::function<CXClientData(CXCursor, CXCursor, void *)>;
+using fnFindTheRightGirl = std::function<CXClientData(CXCursor, CXCursor, void*)>;
 
 struct HeaderParserClientData
 {
@@ -29,50 +30,48 @@ public:
         if (nullptr == clientData)
             return CXChildVisit_Break;
 
-        const auto* header_parser_client_data = static_cast<HeaderParserClientData* >(clientData);
+        const auto* header_parser_client_data = static_cast<HeaderParserClientData*>(clientData);
         if (nullptr == header_parser_client_data->p_func)
             return CXChildVisit_Break;
 
-        const CXClientData clang_index_client_data = header_parser_client_data->p_func(cursor, parent, header_parser_client_data->p_data);
+        const CXClientData clang_index_client_data =
+            header_parser_client_data->p_func(cursor, parent, header_parser_client_data->p_data);
         if (nullptr == clang_index_client_data)
             return CXChildVisit_Recurse;
 
         const CXCursorKind kind = clang_getCursorKind(cursor);
         const auto name = Utils::getCursorSpelling(cursor);
-
-        if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl || kind == CXCursor_ClassTemplate) &&
-            !Utils::isForwardDeclaration(cursor)) {
-            ClassParser::VisitClass(cursor, parent, clang_index_client_data);
-        } else if (kind == CXCursor_EnumDecl && !Utils::isForwardDeclaration(cursor)) {
-            EnumParser::VisitEnum(cursor, parent, clang_index_client_data);
-        } else if (kind == CXCursor_Namespace) {
-            CXCursor parentNameSpace = clang_getCursorSemanticParent(cursor);
-            while (parentNameSpace.kind == CXCursor_Namespace) {
-                const auto usr = Utils::getCursorUSRString(parentNameSpace);
-                parentNameSpace = clang_getCursorSemanticParent(parentNameSpace);
-            }
-        } else if (kind == CXCursor_CXXBaseSpecifier) {
-        } else if (kind == CXCursor_FunctionDecl) {
-        } else if (kind == CXCursor_CXXMethod || kind == CXCursor_Constructor) {
-            MethodParser::VisitClassMethod(cursor, parent, clang_index_client_data);
-        } else if (kind == CXCursor_FunctionTemplate) {
-        } else if (kind == CXCursor_ParmDecl) {
-            auto typeName = Utils::getCursorTypeString(cursor);
-
-            //std::cout << "  " << name;
-        } else if (kind == CXCursor_TypeRef) {
-        } else {
-            const CXSourceRange range = clang_getCursorExtent(cursor);
-            const CXSourceLocation location = clang_getRangeStart(range);
-            CXFile file = nullptr;
-            unsigned line = 0;
-            unsigned column = 0;
-            unsigned offset = 0;
-            clang_getFileLocation(location, &file, &line, &column, &offset);
-            auto file_name = Utils::CXStringToStdString(clang_getFileName(file));
-            //std::cout << name;
+#if defined DEBUGLOG_ENABLE
+        std::string cursor_spelling = Utils::getCursorSpelling(cursor);
+        std::string cursor_kind_spelling = Utils::getCursorKindSpelling(cursor);
+        std::printf("%s--->%s\n", cursor_kind_spelling.c_str(), cursor_spelling.c_str());
+#endif
+        switch (kind) {
+            case CXCursor_ClassDecl:
+            case CXCursor_StructDecl:
+            case CXCursor_ClassTemplate: {
+                if (!Utils::isForwardDeclaration(cursor)) {
+                    ClassParser::VisitClass(cursor, parent, clang_index_client_data);
+                }
+            } break;
+            case CXCursor_EnumDecl: {
+                if (!Utils::isForwardDeclaration(cursor)) {
+                    EnumParser::VisitEnum(cursor, parent, clang_index_client_data);
+                }
+            } break;
+            case CXCursor_CXXMethod:
+            case CXCursor_Constructor:
+            case CXCursor_FunctionDecl: {
+                MethodParser::VisitClassMethod(cursor, parent, clang_index_client_data);
+            } break;
+            case CXCursor_Namespace:
+            case CXCursor_CXXBaseSpecifier:
+            case CXCursor_ParmDecl:
+            case CXCursor_FunctionTemplate:
+            case CXCursor_TypeRef:
+            default: {
+            } break;
         }
-
         return CXChildVisit_Recurse;
     }
 };

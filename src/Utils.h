@@ -16,6 +16,7 @@
 
 #include "AccessSpecifier.h"
 
+//#define DEBUGLOG_ENABLE 
 class Utils
 {
 public:
