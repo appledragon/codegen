@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -12,10 +13,6 @@
 #include "HeaderParser.h"
 #include "Utils.h"
 #include "clang-c/Index.h"
-#include "jinja2cpp/filesystem_handler.h"
-#include "jinja2cpp/template.h"
-#include "jinja2cpp/template_env.h"
-#include "json.hpp"
 
 class ClassInfoJsonDumper
 {
@@ -121,30 +118,25 @@ private:
         if (nullptr == info || output_path.empty())
             return;
 
-        jinja2::ValuesMap params{};
-
-        params.emplace("Namespace_placehold", info->nameSpace);
-        params.emplace("Class_placehold", info->name);
-        params.emplace("File_placehold", info->sourceLocation);
-
-        jinja2::ValuesList methodList{};
-        jinja2::ValuesList argList{};
-        jinja2::ValuesList returnList{};
-        jinja2::ValuesList keywordList{};
+        Json class_info_json;
+        class_info_json["Namespace"] = info->nameSpace;
+        class_info_json["Class"] = info->name;
+        class_info_json["File"] = info->sourceLocation;
+        Json method_list_json;
         for (const auto& method : info->methodList) {
             if (method.isStatic)
                 continue;
-            jinja2::ValuesList args{};
-            const auto argSize = method.args.size();
-            for (size_t i = 0; i < argSize; i++) {
-                jinja2::ValuesMap arg;
-                arg.emplace("name", method.args.at(i).name);
-                arg.emplace("type",
-                            method.args.at(i).underlyingType.empty() ? method.args.at(i).type
-                                                                     : method.args.at(i).underlyingType);
-                args.push_back(arg);
+            Json method_json;
+            // method base information
+            method_json["name"] = method.name;
+            std::string return_type =
+                method.returnInfo.underlyingType.empty() ? method.returnInfo.type : method.returnInfo.underlyingType;
+            if (!return_type.empty()) {
+                if (method.returnInfo.isPointer) {
+                    return_type.append("*");
+                }
             }
-
+            method_json["returntype"] = return_type;
             std::string strKeyword;
             if (method.isConst) {
                 strKeyword += "const";
@@ -154,34 +146,25 @@ private:
                     strKeyword += ",";
                 strKeyword += "override";
             }
-            keywordList.push_back(strKeyword);
-            methodList.push_back(method.name);
-            std::string return_info =
-                method.returnInfo.underlyingType.empty() ? method.returnInfo.type : method.returnInfo.underlyingType;
-            if (!return_info.empty()) {
-                if (method.returnInfo.isPointer) {
-                    return_info.append("*");
-                }
+            method_json["keyword"] = strKeyword;
+
+            // method args information
+            const auto argSize = method.args.size();
+            for (size_t i = 0; i < argSize; i++) {
+                Json arg_json;
+                arg_json["name"] = method.args.at(i).name;
+                arg_json["type"] = method.args.at(i).type;
+                method_json["args"].push_back(arg_json);
             }
-            returnList.push_back(return_info);
-            argList.push_back(args);
+            method_list_json.push_back(method_json);
         }
+        class_info_json["Methods"] = method_list_json;
 
-        params.emplace("method_list", methodList);
-        params.emplace("arg_list", argList);
-        params.emplace("return_list", returnList);
-        params.emplace("keyword_list", keywordList);
+        std::string content = class_info_json.dump(2);
 
-        jinja2::TemplateEnv env{};
-        env.GetSettings().lstripBlocks = false;
-        env.GetSettings().trimBlocks = false;
-        jinja2::Template tpl(&env);
-        std::filesystem::path tpl_path = std::filesystem::current_path();
-        tpl_path /= "ClassJsonInfo.tpl";
-        tpl.LoadFromFile(tpl_path.string());
         const std::filesystem::path path{output_path};
         std::ofstream ofs(path);
-        tpl.Render(ofs, params);
+        ofs << content;
     }
 };
 

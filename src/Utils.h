@@ -15,6 +15,8 @@
 #include <variant>
 
 #include "AccessSpecifier.h"
+#include "json.hpp"
+using Json = nlohmann::json;
 
 //#define DEBUGLOG_ENABLE 
 class Utils

@@ -11,10 +11,7 @@
 
 #include "ClassInfo.h"
 #include "HeaderParser.h"
-#include "json.hpp"
 #include "ClassInfoJsonDump.h"
-
-using Json = nlohmann::json;
 
 constexpr const char* CONFIG_FILE_KEY = "-config";
 constexpr const char* IN_FILE_KEY = "-file";
