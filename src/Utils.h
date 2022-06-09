@@ -271,7 +271,7 @@ public:
         }
     }
 
-    static void replaceAllSubString(std::string& str, std::string& from, std::string& to)
+    static void replaceAllSubString(std::string& str, const std::string& from, const std::string& to)
     {
         size_t start_pos = 0;
         while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
@@ -284,7 +284,7 @@ public:
     {
         if (nullptr == path)
             return;
-        std::ifstream file(path);
+        const std::ifstream file(path);
         std::stringstream buffer;
         buffer << file.rdbuf();
         content = buffer.str();

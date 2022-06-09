@@ -20,7 +20,7 @@
 class ClassInfoJsonDumper
 {
 public:
-    static void parse(CXCursor rootCursor, std::filesystem::path& out_put_dir)
+    static void parse(const CXCursor& rootCursor, std::filesystem::path& out_put_dir)
     {
         House4ClassInfos house;
         HeaderParserClientData client_data;
@@ -82,7 +82,7 @@ private:
                     } else {
                         auto* value = new ClassInfo;
                         house->class_infos.insert(value);
-                        house->runtime_relations_cache.insert(std::make_pair(hash, value));
+                        house->runtime_relations_cache.emplace(std::make_pair(hash, value));
                         client_data = value;
                     }
                 }
@@ -104,7 +104,7 @@ private:
         }
 
         if (nullptr == client_data && house->runtime_relations_cache.end() != iter_parent) {
-            house->runtime_relations_cache.insert(std::make_pair(hash, iter_parent->second));
+            house->runtime_relations_cache.emplace(std::make_pair(hash, iter_parent->second));
             client_data = iter_parent->second;
         }
 
@@ -185,14 +185,14 @@ private:
     }
 };
 
-class ASTTreeDumper
+class ASTDumper
 {
 public:
-    static void parse(CXCursor rootCursor, std::filesystem::path& out_put_dir)
+    static void parse(const CXCursor& rootCursor, std::filesystem::path& out_put_dir)
     {
         std::map<unsigned, int> cursor_levels;
         HeaderParserClientData client_data;
-        client_data.p_func = ASTTreeDumper::findTheRightClassInfoObject;
+        client_data.p_func = ASTDumper::findTheRightClassInfoObject;
         client_data.p_data = &cursor_levels;
         clang_visitChildren(rootCursor, HeaderParser::Parser, &client_data);
     }
@@ -239,14 +239,14 @@ private:
             if (p_cursor_levels->end() != iter_parent) {
                 int level = iter_parent->second;
                 level++;
-                p_cursor_levels->insert(std::make_pair(hash, level));
+                p_cursor_levels->emplace(std::make_pair(hash, level));
                 printCXCursor(cursor, level);
             } else {
                 int level = 0;
-                p_cursor_levels->insert(std::make_pair(parent_hash, level));
+                p_cursor_levels->emplace(std::make_pair(parent_hash, level));
                 printCXCursor(parent, level);
                 level++;
-                p_cursor_levels->insert(std::make_pair(hash, level));
+                p_cursor_levels->emplace(std::make_pair(hash, level));
                 printCXCursor(cursor, level);
             }
         }

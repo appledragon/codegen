@@ -114,7 +114,7 @@ public:
         clang_visitChildren(cursor, visitor, argInfo);
     }
 
-    static void VisitReturnInfo(const CXType type, MethodInfo &method)
+    static void VisitReturnInfo(const CXType& type, MethodInfo &method)
     {
         const auto returnType = clang_getResultType(type);
 
@@ -139,9 +139,9 @@ public:
                 //std::string typedef_name = Utils::getCursorTypeString(typedef_Cursor);
                 //Utils::replaceAllSubString(type_name, typedef_name, underflying_name); //not best solution
             }
-            method.returnInfo.type = type_name;
+            method.returnInfo.type = std::move(type_name);
             if (!underflying_name.empty())
-                method.returnInfo.underlyingType = underflying_name;
+                method.returnInfo.underlyingType = std::move(underflying_name);
         } else {
             // return has no name
             // method->methodReturnInfo.name = Utils::getCursorNameString(returnCursor);

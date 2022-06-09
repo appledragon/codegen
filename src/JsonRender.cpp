@@ -37,6 +37,7 @@ std::vector<std::string> parseClangRuntimeArguments(std::map<std::string, std::s
                 config_json = Json::parse(config_content);
                 printf("parseClangRuntimeArguments config all_content: %s\n", config_content.c_str());
             } catch (Json::parse_error& ex) {
+                printf("parseClangRuntimeArguments parse_error: %s\n", ex.what());
                 break;
             }
 
@@ -99,7 +100,7 @@ int clangJsonRenderMain(int argc, char** argv)
 
     const auto& iter_dump_tree = map_cmd_opts.find(DUMP_TREE);
     if (map_cmd_opts.end() != iter_dump_tree) {
-        ASTTreeDumper::parse(rootCursor, out_put_dir);
+        ASTDumper::parse(rootCursor, out_put_dir);
     }else {
         ClassInfoJsonDumper::parse(rootCursor, out_put_dir);
     }   

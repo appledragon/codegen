@@ -59,7 +59,7 @@ public:
             if (x != 0)
                 ns += "::";
         }
-        classInfo->nameSpace = ns;
+        classInfo->nameSpace = std::move(ns);
     }
 
     static void VisitClassFields(CXCursor cursor, ClassInfo *classInfo)
