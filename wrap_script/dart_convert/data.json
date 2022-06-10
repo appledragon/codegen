@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "configurations": [
+    "-x",
+    "c++",
+    "-std=c++17",
+    "-I/home/datsliao/Documents/dats_work/codegen/codegen/.vscode/export_h",
+    "-I/home/datsliao/Documents/dats_work/codegen/codegen/.vscode/export_h/helpers",
+    "-I/usr/lib/gcc/x86_64-linux-gnu/9/include",
+    "-DLinux"
+  ]
+}

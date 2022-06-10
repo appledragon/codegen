@@ -1,0 +1,25 @@
+{
+    "void":{
+        "alias": "",
+        "default_value": ""
+    },
+    "int":{
+        "alias": "",
+        "default_value": "0"
+    },
+    "bool":{
+        "alias": "",
+        "default_value": "false"
+    },
+    "unsigned int":{
+        "alias": "",
+        "default_value": "0"
+    },
+    "__uint32_t":{
+        "alias": "unsigned int"
+    },
+    "__time_t":{
+        "alias": "",
+        "default_value": "0"
+    }
+}
