@@ -1,0 +1,9 @@
+{
+    "class_rule": {
+    
+        "xxxxClassName": "interface",
+        "yyyyClassName": "callback"
+    },
+    "custom_type_rule": {
+    }
+}

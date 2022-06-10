@@ -29,7 +29,7 @@ if (AST_DUMP_JSON)
     
     target_include_directories(codegen
             PRIVATE
-            codegen-common-inc
+            ${codegen-common-inc}
             )
    target_link_libraries(codegen PUBLIC ${codegen-common-link})
 else()
@@ -41,7 +41,7 @@ else()
             )
     target_include_directories(codegen
             PRIVATE
-            codegen-common-inc
+            ${codegen-common-inc}
             "${JINJA2CPP_INCLUDE_DIR}"
             )
     target_link_libraries(codegen PUBLIC ${codegen-common-link} jinja2cpp)
