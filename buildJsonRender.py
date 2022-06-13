@@ -19,6 +19,10 @@ except:
     pass
 
 libclang_path = os.path.join(root_path, "vendors")
+try:
+    os.mkdir(libclang_path)
+except:
+    pass
 sys_type = platform.system()
 print("{} building start.....".format(sys_type))
 sys.stdout.flush()
