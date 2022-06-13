@@ -18,7 +18,7 @@ try:
 except:
     pass
 
-libclang_path = os.path.join(root_path, "vendor")
+libclang_path = os.path.join(root_path, "vendors")
 sys_type = platform.system()
 print("{} building start.....".format(sys_type))
 sys.stdout.flush()
