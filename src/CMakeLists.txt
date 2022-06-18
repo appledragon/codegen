@@ -29,7 +29,7 @@ set(codegen-common-inc "${CLANG_INCLUDE_DIRS}")
 
 if (AST_DUMP_JSON)
     if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,-rpath='\$ORIGIN'")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath='\$ORIGIN'")
     endif()
     add_executable(codegen
             ${codegen-common-src}
